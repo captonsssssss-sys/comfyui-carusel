@@ -35,28 +35,43 @@ RUN set -eux; \
 
 
 # ============================================================
-# 3. Проверяем Python ABI
+# 3. Определяем Python ABI
 #
-# Нам нужен CPython 3.12, потому что ниже устанавливается:
+# Поддерживаем готовые Linux wheels:
 #
-# llama_cpp_python-0.3.49+cu131-cp312-cp312-linux_x86_64.whl
+# cp310
+# cp311
+# cp312
+# cp313
+# cp314
+#
+# Никакого GitHub API.
 # ============================================================
 
 RUN set -eux; \
-    python3 - <<'PY'
-import sys
-
-print("Python:", sys.version)
-
-if sys.version_info[:2] != (3, 12):
-    raise RuntimeError(
-        "This Dockerfile expects Python 3.12, "
-        f"but the base image has Python {sys.version_info.major}.{sys.version_info.minor}. "
-        "Use the matching cp311/cp313 wheel if the base image uses another Python version."
-    )
-
-print("Python 3.12 ABI: OK")
-PY
+    PY_VER="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"; \
+    echo "Detected Python: ${PY_VER}"; \
+    case "${PY_VER}" in \
+        3.10) \
+            echo "Python ABI: cp310"; \
+            ;; \
+        3.11) \
+            echo "Python ABI: cp311"; \
+            ;; \
+        3.12) \
+            echo "Python ABI: cp312"; \
+            ;; \
+        3.13) \
+            echo "Python ABI: cp313"; \
+            ;; \
+        3.14) \
+            echo "Python ABI: cp314"; \
+            ;; \
+        *) \
+            echo "ERROR: Unsupported Python version: ${PY_VER}"; \
+            exit 1; \
+            ;; \
+    esac
 
 
 # ============================================================
@@ -98,112 +113,73 @@ RUN set -eux; \
 
 
 # ============================================================
-# 7. Устанавливаем КОНКРЕТНЫЙ Linux CUDA wheel
+# 7. Выбираем правильный готовый Linux CUDA wheel
 #
 # JamePeng
 # llama-cpp-python 0.3.49
 # CUDA 13.1
-# CPython 3.12
 # Linux x86_64
 #
-# Больше никакого GitHub API / latest.
+# Версии и SHA256 зафиксированы.
 # ============================================================
 
-ENV LLAMA_CPP_VERSION=0.3.49
-ENV LLAMA_CPP_WHEEL=llama_cpp_python-0.3.49+cu131-cp312-cp312-linux_x86_64.whl
-ENV LLAMA_CPP_URL=https://github.com/JamePeng/llama-cpp-python/releases/download/v0.3.49-cu131-linux-20260831/llama_cpp_python-0.3.49%2Bcu131-cp312-cp312-linux_x86_64.whl
-ENV LLAMA_CPP_SHA256=278d7c5bcc40a16e93803ae0cea781f5d064353fc0a591d87836cc2faafc57b6
-
 RUN set -eux; \
+    PY_VER="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"; \
+    case "${PY_VER}" in \
+        3.10) \
+            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp310-cp310-linux_x86_64.whl"; \
+            LLAMA_SHA256="061bde5029f8862b75508104dfb428550353460f70ed512e2f4dcebbfa170a9f"; \
+            ;; \
+        3.11) \
+            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp311-cp311-linux_x86_64.whl"; \
+            LLAMA_SHA256="68a239c8288fb9cd26085b5496909900f52e93fdffa4586c97a5b20263448229"; \
+            ;; \
+        3.12) \
+            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp312-cp312-linux_x86_64.whl"; \
+            LLAMA_SHA256="278d7c5bcc40a16e93803ae0cea781f5d064353fc0a591d87836cc2faafc57b6"; \
+            ;; \
+        3.13) \
+            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp313-cp313-linux_x86_64.whl"; \
+            LLAMA_SHA256="be02c47a2a4d0f9baafe2ff5b94ec6592e488e73dbb39ab3ca60e56153a029f0"; \
+            ;; \
+        3.14) \
+            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp314-cp314-linux_x86_64.whl"; \
+            LLAMA_SHA256="11c69977e7cd8255d3d952f2655300fd30ea172b366d46ce0de55bf533c16793"; \
+            ;; \
+        *) \
+            echo "ERROR: Unsupported Python version: ${PY_VER}"; \
+            exit 1; \
+            ;; \
+    esac; \
+    LLAMA_URL="https://github.com/JamePeng/llama-cpp-python/releases/download/v0.3.49-cu131-linux-20260831/${LLAMA_WHEEL}"; \
+    echo "=============================================="; \
+    echo "Installing llama-cpp-python"; \
+    echo "Python: ${PY_VER}"; \
+    echo "Wheel: ${LLAMA_WHEEL}"; \
+    echo "URL: ${LLAMA_URL}"; \
+    echo "=============================================="; \
     cd /tmp; \
-    echo "Downloading ${LLAMA_CPP_WHEEL}"; \
-    python3 - <<'PY'
-import os
-import urllib.request
-
-url = os.environ["LLAMA_CPP_URL"]
-filename = os.environ["LLAMA_CPP_WHEEL"]
-output = os.path.join("/tmp", filename)
-
-print("URL:", url)
-print("Output:", output)
-
-request = urllib.request.Request(
-    url,
-    headers={
-        "User-Agent": "Docker-llama-cpp-installer"
-    }
-)
-
-with urllib.request.urlopen(request, timeout=120) as response:
-    with open(output, "wb") as f:
-        while True:
-            chunk = response.read(1024 * 1024)
-            if not chunk:
-                break
-            f.write(chunk)
-
-size = os.path.getsize(output)
-
-print("Downloaded:", size, "bytes")
-
-if size < 1000000:
-    raise RuntimeError(
-        f"Downloaded wheel is suspiciously small: {size} bytes"
-    )
-PY
+    python3 -c "import urllib.request; urllib.request.urlretrieve('${LLAMA_URL}', '/tmp/${LLAMA_WHEEL}')"; \
+    test -f "/tmp/${LLAMA_WHEEL}"; \
     echo "Checking SHA256..."; \
-    echo "${LLAMA_CPP_SHA256}  /tmp/${LLAMA_CPP_WHEEL}" | sha256sum -c -; \
-    echo "Installing llama-cpp-python..."; \
+    echo "${LLAMA_SHA256}  /tmp/${LLAMA_WHEEL}" | sha256sum -c -; \
+    echo "Installing wheel..."; \
     python3 -m pip install \
         --no-cache-dir \
         --force-reinstall \
-        "/tmp/${LLAMA_CPP_WHEEL}"; \
-    rm -f "/tmp/${LLAMA_CPP_WHEEL}"
+        "/tmp/${LLAMA_WHEEL}"; \
+    rm -f "/tmp/${LLAMA_WHEEL}"
 
 
 # ============================================================
 # 8. Проверяем llama-cpp-python
 #
-# Здесь НЕ импортируем ComfyUI.
-# Здесь НЕ импортируем nodes.py.
+# НЕ импортируем ComfyUI.
+# НЕ импортируем nodes.py.
 # ============================================================
 
 RUN set -eux; \
-    python3 - <<'PY'
-import llama_cpp
-from llama_cpp import Llama
-
-print("==============================================")
-print(" llama-cpp-python")
-print("==============================================")
-print("Version:", getattr(llama_cpp, "__version__", "unknown"))
-print("Llama:", Llama)
-print("Import: OK")
-
-from llama_cpp.llama_chat_format import (
-    Llava15ChatHandler,
-    Llava16ChatHandler,
-    MoondreamChatHandler,
-    NanoLlavaChatHandler,
-    Llama3VisionAlphaChatHandler,
-    MiniCPMv26ChatHandler,
-)
-
-print("Standard vision handlers: OK")
-
-try:
-    from llama_cpp.llama_chat_format import Qwen35ChatHandler
-    print("Qwen35ChatHandler: OK")
-except ImportError as e:
-    print("Qwen35ChatHandler: FAILED")
-    print(e)
-    raise
-
-print("==============================================")
-print(" llama-cpp-python verification: PASSED")
-print("==============================================")
-PY
+    python3 -c "import llama_cpp; from llama_cpp import Llama; print('llama_cpp version:', getattr(llama_cpp, '__version__', 'unknown')); print('Llama import: OK'); from llama_cpp.llama_chat_format import Llava15ChatHandler, Llava16ChatHandler, MoondreamChatHandler, NanoLlavaChatHandler, Llama3VisionAlphaChatHandler, MiniCPMv26ChatHandler; print('Standard vision handlers: OK'); from llama_cpp.llama_chat_format import Qwen35ChatHandler; print('Qwen35ChatHandler: OK'); print('llama-cpp-python verification: PASSED')"
 
 
 # ============================================================
@@ -215,33 +191,7 @@ PY
 # ============================================================
 
 RUN set -eux; \
-    python3 - <<'PY'
-import ast
-
-path = "/default-comfyui-bundle/ComfyUI/custom_nodes/ComfyUI-llama-cpp_vlm/nodes.py"
-
-with open(path, "r", encoding="utf-8") as f:
-    source = f.read()
-
-ast.parse(source, filename=path)
-
-required_names = [
-    "llama_cpp_parameters",
-    "llama_cpp_model_loader",
-    "llama_cpp_instruct_adv",
-]
-
-print("Checking required node definitions...")
-
-for name in required_names:
-    if name not in source:
-        raise RuntimeError(
-            f"Expected node name not found in nodes.py: {name}"
-        )
-    print(f"  {name}: FOUND")
-
-print("nodes.py syntax: OK")
-PY
+    python3 -c "import ast; path='/default-comfyui-bundle/ComfyUI/custom_nodes/ComfyUI-llama-cpp_vlm/nodes.py'; source=open(path, 'r', encoding='utf-8').read(); ast.parse(source, filename=path); required=['llama_cpp_parameters','llama_cpp_model_loader','llama_cpp_instruct_adv']; print('Checking required node definitions...'); [print(f'  {name}: FOUND') for name in required if name in source] if all(name in source for name in required) else (_ for _ in ()).throw(RuntimeError('Required Llama node definition missing')); print('nodes.py syntax: OK')"
 
 
 # ============================================================
@@ -250,7 +200,7 @@ PY
 # GGUF-модели НЕ помещаем в Docker.
 # Они должны находиться на RunPod Volume:
 #
-# /.../models/LLM/
+# models/LLM/
 # ============================================================
 
 RUN set -eux; \
@@ -269,49 +219,10 @@ COPY CARUSEL.json /tmp/CARUSEL.json
 # 12. Проверяем JSON workflow
 #
 # Только синтаксис JSON.
-# Никаких попыток запускать workflow.
 # ============================================================
 
 RUN set -eux; \
-    python3 - <<'PY'
-import json
-
-path = "/tmp/CARUSEL.json"
-
-with open(path, "r", encoding="utf-8") as f:
-    data = json.load(f)
-
-if not isinstance(data, dict):
-    raise RuntimeError("CARUSEL.json root must be a JSON object")
-
-nodes = data.get("nodes", [])
-links = data.get("links", [])
-
-print("==============================================")
-print(" CARUSEL.json")
-print("==============================================")
-print("JSON syntax: OK")
-print("Workflow ID:", data.get("id"))
-print("Workflow version:", data.get("version"))
-print("Nodes:", len(nodes))
-print("Links:", len(links))
-
-llama_nodes = []
-
-for node in nodes:
-    node_type = node.get("type")
-
-    if isinstance(node_type, str) and node_type.startswith("llama_cpp_"):
-        llama_nodes.append(node_type)
-
-print("")
-print("Llama nodes in workflow:")
-
-for node_type in sorted(set(llama_nodes)):
-    print("  ", node_type)
-
-print("==============================================")
-PY
+    python3 -c "import json; path='/tmp/CARUSEL.json'; data=json.load(open(path, 'r', encoding='utf-8')); assert isinstance(data, dict), 'CARUSEL.json root must be a JSON object'; nodes=data.get('nodes', []); links=data.get('links', []); print('=============================================='); print('CARUSEL.json'); print('=============================================='); print('JSON syntax: OK'); print('Workflow ID:', data.get('id')); print('Workflow version:', data.get('version')); print('Nodes:', len(nodes)); print('Links:', len(links)); llama=sorted(set(n.get('type') for n in nodes if isinstance(n.get('type'), str) and n.get('type').startswith('llama_cpp_'))); print(''); print('Llama nodes in workflow:'); [print('  ', x) for x in llama]; print('==============================================' )"
 
 
 # ============================================================
@@ -344,7 +255,6 @@ RUN set -eux; \
     echo " BUILD PREPARATION COMPLETE"; \
     echo "=============================================="; \
     echo "Base: farmerfarmit/bitcoin:v6"; \
-    echo "Python: 3.12"; \
     echo "llama-cpp-python: 0.3.49+cu131"; \
     echo "Platform: Linux x86_64"; \
     echo "Custom node: ComfyUI-llama-cpp_vlm"; \
