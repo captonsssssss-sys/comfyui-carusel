@@ -17,7 +17,9 @@ ENV PIP_NO_CACHE_DIR=1
 RUN set -eux; \
     test -d "${COMFYUI_PATH}"; \
     test -f "${COMFYUI_PATH}/main.py"; \
+    echo "=== Python ==="; \
     python3 --version; \
+    echo "=== pip ==="; \
     python3 -m pip --version
 
 
@@ -29,13 +31,38 @@ RUN set -eux; \
     python3 -m pip install --upgrade \
         pip \
         setuptools \
-        wheel \
-        packaging
+        wheel
 
 
 # ============================================================
-# 3. Устанавливаем только нужный custom node:
-#    ComfyUI-llama-cpp_vlm
+# 3. Проверяем Python ABI
+#
+# Нам нужен CPython 3.12, потому что ниже устанавливается:
+#
+# llama_cpp_python-0.3.49+cu131-cp312-cp312-linux_x86_64.whl
+# ============================================================
+
+RUN set -eux; \
+    python3 - <<'PY'
+import sys
+
+print("Python:", sys.version)
+
+if sys.version_info[:2] != (3, 12):
+    raise RuntimeError(
+        "This Dockerfile expects Python 3.12, "
+        f"but the base image has Python {sys.version_info.major}.{sys.version_info.minor}. "
+        "Use the matching cp311/cp313 wheel if the base image uses another Python version."
+    )
+
+print("Python 3.12 ABI: OK")
+PY
+
+
+# ============================================================
+# 4. Устанавливаем custom node
+#
+# ComfyUI-llama-cpp_vlm
 # ============================================================
 
 RUN set -eux; \
@@ -49,11 +76,7 @@ RUN set -eux; \
 
 
 # ============================================================
-# 4. Python-зависимости custom node
-#
-# ВАЖНО:
-# requirements.txt устанавливаем отдельно.
-# llama-cpp-python здесь специально НЕ собираем из исходников.
+# 5. Зависимости custom node
 # ============================================================
 
 RUN set -eux; \
@@ -64,7 +87,7 @@ RUN set -eux; \
 
 
 # ============================================================
-# 5. Базовые зависимости, которые использует nodes.py
+# 6. Зависимости, используемые nodes.py
 # ============================================================
 
 RUN set -eux; \
@@ -75,155 +98,75 @@ RUN set -eux; \
 
 
 # ============================================================
-# 6. Устанавливаем готовый llama-cpp-python wheel
+# 7. Устанавливаем КОНКРЕТНЫЙ Linux CUDA wheel
 #
-# Не собираем llama-cpp-python через CMake.
-# Ищем совместимый wheel в релизах JamePeng.
+# JamePeng
+# llama-cpp-python 0.3.49
+# CUDA 13.1
+# CPython 3.12
+# Linux x86_64
+#
+# Больше никакого GitHub API / latest.
 # ============================================================
 
+ENV LLAMA_CPP_VERSION=0.3.49
+ENV LLAMA_CPP_WHEEL=llama_cpp_python-0.3.49+cu131-cp312-cp312-linux_x86_64.whl
+ENV LLAMA_CPP_URL=https://github.com/JamePeng/llama-cpp-python/releases/download/v0.3.49-cu131-linux-20260831/llama_cpp_python-0.3.49%2Bcu131-cp312-cp312-linux_x86_64.whl
+ENV LLAMA_CPP_SHA256=278d7c5bcc40a16e93803ae0cea781f5d064353fc0a591d87836cc2faafc57b6
+
 RUN set -eux; \
+    cd /tmp; \
+    echo "Downloading ${LLAMA_CPP_WHEEL}"; \
     python3 - <<'PY'
-import json
 import os
-import platform
-import subprocess
-import sys
-import tempfile
 import urllib.request
-from packaging.tags import sys_tags
-from packaging.utils import parse_wheel_filename
 
-API_URL = "https://api.github.com/repos/JamePeng/llama-cpp-python/releases/latest"
+url = os.environ["LLAMA_CPP_URL"]
+filename = os.environ["LLAMA_CPP_WHEEL"]
+output = os.path.join("/tmp", filename)
 
-print("Python:", sys.version)
-print("Platform:", platform.platform())
-print("Architecture:", platform.machine())
-print("Downloading release information...")
+print("URL:", url)
+print("Output:", output)
 
 request = urllib.request.Request(
-    API_URL,
+    url,
     headers={
-        "Accept": "application/vnd.github+json",
-        "User-Agent": "docker-build-llama-cpp"
+        "User-Agent": "Docker-llama-cpp-installer"
     }
 )
 
-with urllib.request.urlopen(request, timeout=60) as response:
-    release = json.load(response)
+with urllib.request.urlopen(request, timeout=120) as response:
+    with open(output, "wb") as f:
+        while True:
+            chunk = response.read(1024 * 1024)
+            if not chunk:
+                break
+            f.write(chunk)
 
-tag = release.get("tag_name", "unknown")
-assets = release.get("assets", [])
+size = os.path.getsize(output)
 
-print("Latest JamePeng release:", tag)
-print("Assets:", len(assets))
+print("Downloaded:", size, "bytes")
 
-supported_tags = set(sys_tags())
-
-candidates = []
-
-for asset in assets:
-    name = asset.get("name", "")
-    url = asset.get("browser_download_url", "")
-
-    if not name.endswith(".whl"):
-        continue
-
-    try:
-        distribution, version, build, wheel_tags = parse_wheel_filename(name)
-    except Exception:
-        continue
-
-    if not supported_tags.intersection(wheel_tags):
-        continue
-
-    lower_name = name.lower()
-
-    # Prefer CUDA wheels when available.
-    cuda_score = 0
-    if "cuda" in lower_name:
-        cuda_score += 100
-    if "cu12" in lower_name:
-        cuda_score += 20
-    if "cu11" in lower_name:
-        cuda_score += 10
-
-    # Prefer x86_64 wheels on the RunPod AMD64 platform.
-    arch_score = 0
-    if "x86_64" in lower_name or "amd64" in lower_name:
-        arch_score += 20
-
-    # Prefer manylinux wheels.
-    platform_score = 0
-    if "manylinux" in lower_name:
-        platform_score += 10
-
-    score = cuda_score + arch_score + platform_score
-
-    candidates.append(
-        (
-            score,
-            name,
-            url,
-            str(version),
-        )
+if size < 1000000:
+    raise RuntimeError(
+        f"Downloaded wheel is suspiciously small: {size} bytes"
     )
-
-if not candidates:
-    print("")
-    print("ERROR: No compatible llama-cpp-python wheel was found.")
-    print("")
-    print("Available wheel assets:")
-    for asset in assets:
-        name = asset.get("name", "")
-        if name.endswith(".whl"):
-            print(" -", name)
-    raise SystemExit(1)
-
-candidates.sort(reverse=True)
-
-print("")
-print("Compatible wheel candidates:")
-for score, name, url, version in candidates:
-    print(f"  score={score:3d}  version={version}  {name}")
-
-score, wheel_name, wheel_url, wheel_version = candidates[0]
-
-print("")
-print("Selected wheel:")
-print(wheel_name)
-print(wheel_url)
-print("")
-
-with tempfile.TemporaryDirectory() as tmp:
-    wheel_path = os.path.join(tmp, wheel_name)
-
-    print("Downloading selected wheel...")
-    urllib.request.urlretrieve(wheel_url, wheel_path)
-
-    print("Installing selected wheel...")
-    subprocess.check_call(
-        [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--no-cache-dir",
-            "--force-reinstall",
-            wheel_path,
-        ]
-    )
-
-print("")
-print("llama-cpp-python installation completed.")
 PY
+    echo "Checking SHA256..."; \
+    echo "${LLAMA_CPP_SHA256}  /tmp/${LLAMA_CPP_WHEEL}" | sha256sum -c -; \
+    echo "Installing llama-cpp-python..."; \
+    python3 -m pip install \
+        --no-cache-dir \
+        --force-reinstall \
+        "/tmp/${LLAMA_CPP_WHEEL}"; \
+    rm -f "/tmp/${LLAMA_CPP_WHEEL}"
 
 
 # ============================================================
-# 7. Проверяем llama-cpp-python
+# 8. Проверяем llama-cpp-python
 #
-# НЕ импортируем ComfyUI.
-# НЕ импортируем nodes.py.
-# НЕ трогаем CUDA.
+# Здесь НЕ импортируем ComfyUI.
+# Здесь НЕ импортируем nodes.py.
 # ============================================================
 
 RUN set -eux; \
@@ -231,9 +174,12 @@ RUN set -eux; \
 import llama_cpp
 from llama_cpp import Llama
 
-print("llama_cpp imported successfully")
-print("llama_cpp version:", getattr(llama_cpp, "__version__", "unknown"))
+print("==============================================")
+print(" llama-cpp-python")
+print("==============================================")
+print("Version:", getattr(llama_cpp, "__version__", "unknown"))
 print("Llama:", Llama)
+print("Import: OK")
 
 from llama_cpp.llama_chat_format import (
     Llava15ChatHandler,
@@ -244,33 +190,33 @@ from llama_cpp.llama_chat_format import (
     MiniCPMv26ChatHandler,
 )
 
-print("Standard vision chat handlers: OK")
+print("Standard vision handlers: OK")
 
 try:
     from llama_cpp.llama_chat_format import Qwen35ChatHandler
     print("Qwen35ChatHandler: OK")
 except ImportError as e:
-    print("WARNING: Qwen35ChatHandler is not available:")
+    print("Qwen35ChatHandler: FAILED")
     print(e)
-    print("")
-    print("The installed llama-cpp-python package may not contain")
-    print("the Qwen3.5 handler required by the selected custom node.")
     raise
+
+print("==============================================")
+print(" llama-cpp-python verification: PASSED")
+print("==============================================")
 PY
 
 
 # ============================================================
-# 8. Статически проверяем nodes.py
+# 9. Статическая проверка custom node
 #
-# ВАЖНО:
-# Никакого import nodes.py здесь нет.
-# Поэтому GitHub Actions не пытается обращаться к NVIDIA GPU.
+# НЕ импортируем nodes.py.
+# Это важно: импорт ComfyUI во время GitHub Actions
+# может попытаться обратиться к NVIDIA.
 # ============================================================
 
 RUN set -eux; \
     python3 - <<'PY'
 import ast
-import os
 
 path = "/default-comfyui-bundle/ComfyUI/custom_nodes/ComfyUI-llama-cpp_vlm/nodes.py"
 
@@ -285,22 +231,26 @@ required_names = [
     "llama_cpp_instruct_adv",
 ]
 
+print("Checking required node definitions...")
+
 for name in required_names:
     if name not in source:
-        raise RuntimeError(f"Expected node name not found in nodes.py: {name}")
+        raise RuntimeError(
+            f"Expected node name not found in nodes.py: {name}"
+        )
+    print(f"  {name}: FOUND")
 
 print("nodes.py syntax: OK")
-print("Required Llama node definitions detected:")
-for name in required_names:
-    print(" -", name)
 PY
 
 
 # ============================================================
-# 9. Создаём директорию LLM
+# 10. Создаём необходимые директории
 #
-# Сами GGUF-модели сюда НЕ копируем.
-# RunPod Volume будет монтироваться отдельно.
+# GGUF-модели НЕ помещаем в Docker.
+# Они должны находиться на RunPod Volume:
+#
+# /.../models/LLM/
 # ============================================================
 
 RUN set -eux; \
@@ -309,18 +259,17 @@ RUN set -eux; \
 
 
 # ============================================================
-# 10. Копируем workflow
+# 11. Копируем workflow
 # ============================================================
 
 COPY CARUSEL.json /tmp/CARUSEL.json
 
 
 # ============================================================
-# 11. Проверяем только JSON-синтаксис
+# 12. Проверяем JSON workflow
 #
-# НИКАКИХ проверок class_type.
-# НИКАКИХ требований к количеству nodes.
-# НИКАКОЙ попытки запускать workflow.
+# Только синтаксис JSON.
+# Никаких попыток запускать workflow.
 # ============================================================
 
 RUN set -eux; \
@@ -335,31 +284,38 @@ with open(path, "r", encoding="utf-8") as f:
 if not isinstance(data, dict):
     raise RuntimeError("CARUSEL.json root must be a JSON object")
 
-print("CARUSEL.json: valid JSON")
+nodes = data.get("nodes", [])
+links = data.get("links", [])
+
+print("==============================================")
+print(" CARUSEL.json")
+print("==============================================")
+print("JSON syntax: OK")
 print("Workflow ID:", data.get("id"))
 print("Workflow version:", data.get("version"))
-print("Node count:", len(data.get("nodes", [])))
-print("Link count:", len(data.get("links", [])))
-
-# Просто информативно показываем Llama nodes,
-# но НЕ падаем из-за формата workflow.
+print("Nodes:", len(nodes))
+print("Links:", len(links))
 
 llama_nodes = []
 
-for node in data.get("nodes", []):
+for node in nodes:
     node_type = node.get("type")
 
     if isinstance(node_type, str) and node_type.startswith("llama_cpp_"):
         llama_nodes.append(node_type)
 
-print("Llama nodes found in workflow:")
+print("")
+print("Llama nodes in workflow:")
+
 for node_type in sorted(set(llama_nodes)):
-    print(" -", node_type)
+    print("  ", node_type)
+
+print("==============================================")
 PY
 
 
 # ============================================================
-# 12. Кладём workflow в ComfyUI
+# 13. Устанавливаем workflow в ComfyUI
 # ============================================================
 
 RUN set -eux; \
@@ -369,28 +325,31 @@ RUN set -eux; \
 
 
 # ============================================================
-# 13. Финальная проверка файлов
+# 14. Финальная проверка
 #
-# Никаких CUDA вызовов.
 # Никакого запуска ComfyUI.
+# Никакого обращения к CUDA.
 # ============================================================
 
 RUN set -eux; \
     test -d "${COMFYUI_PATH}"; \
+    test -f "${COMFYUI_PATH}/main.py"; \
     test -d "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm"; \
     test -f "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm/nodes.py"; \
     test -d "${COMFYUI_PATH}/models/LLM"; \
     test -f "${COMFYUI_PATH}/workflows/CARUSEL.json"; \
-    python3 -c "import llama_cpp; print('FINAL llama_cpp check: OK')"; \
+    python3 -c "import llama_cpp; print('FINAL llama_cpp import: OK')"; \
     echo ""; \
     echo "=============================================="; \
-    echo " Docker image preparation completed"; \
+    echo " BUILD PREPARATION COMPLETE"; \
     echo "=============================================="; \
-    echo "ComfyUI: ${COMFYUI_PATH}"; \
-    echo "Llama node: installed"; \
-    echo "Workflow: installed"; \
-    echo "LLM models: expected on RunPod Volume"; \
+    echo "Base: farmerfarmit/bitcoin:v6"; \
+    echo "Python: 3.12"; \
+    echo "llama-cpp-python: 0.3.49+cu131"; \
+    echo "Platform: Linux x86_64"; \
+    echo "Custom node: ComfyUI-llama-cpp_vlm"; \
+    echo "Workflow: CARUSEL.json"; \
+    echo "LLM models: RunPod Volume"; \
     echo "=============================================="
-
 
 WORKDIR ${COMFYUI_PATH}
