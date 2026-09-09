@@ -19,19 +19,11 @@ RUN if [ -f "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm/requirements.txt
 
 RUN python3 -m pip install --no-cache-dir numpy scipy pillow
 
-RUN set -eux; LLAMA_WHEEL="$(cat /tmp/llama_wheel)"; LLAMA_SHA256="$(cat /tmp/llama_sha256)"; LLAMA_URL="https://github.com/JamePeng/llama-cpp-python/releases/download/v0.3.49-cu131-linux-20260831/${LLAMA_WHEEL}"; python3 -c 'import urllib.request,sys,time; url=sys.argv[1]; out=sys.argv[2]; 
-for attempt in range(1,6): 
-try: 
-print(f"Download attempt {attempt}/5"); urllib.request.urlretrieve(url,out); break 
-except Exception as e: 
-print(f"Download failed: {e}"); 
-if attempt == 5: raise 
-time.sleep(5)' "${LLAMA_URL}" "/tmp/${LLAMA_WHEEL}"; echo "${LLAMA_SHA256}  /tmp/${LLAMA_WHEEL}" | sha256sum -c -; python3 -m pip uninstall -y llama-cpp-python 2>/dev/null || true; python3 -m pip install --no-cache-dir --force-reinstall "/tmp/${LLAMA_WHEEL}"; rm -f "/tmp/${LLAMA_WHEEL}"
+RUN set -eux; LLAMA_WHEEL="$(cat /tmp/llama_wheel)"; LLAMA_SHA256="$(cat /tmp/llama_sha256)"; LLAMA_URL="https://github.com/JamePeng/llama-cpp-python/releases/download/v0.3.49-cu131-linux-20260831/${LLAMA_WHEEL}"; echo "Downloading ${LLAMA_URL}"; python3 -c 'import urllib.request,sys; urllib.request.urlretrieve(sys.argv[1],sys.argv[2])' "${LLAMA_URL}" "/tmp/${LLAMA_WHEEL}"; echo "${LLAMA_SHA256}  /tmp/${LLAMA_WHEEL}" | sha256sum -c -; python3 -m pip uninstall -y llama-cpp-python 2>/dev/null || true; python3 -m pip install --no-cache-dir --force-reinstall "/tmp/${LLAMA_WHEEL}"; rm -f "/tmp/${LLAMA_WHEEL}"
 
 RUN python3 -c 'import llama_cpp; from llama_cpp import Llama; from llama_cpp.llama_chat_format import Qwen35ChatHandler; print("llama_cpp version:", getattr(llama_cpp, "**version**", "unknown")); print("Qwen35ChatHandler: OK"); print("llama-cpp-python: OK")'
 
-RUN python3 -c 'from pathlib import Path; import ast; root=Path("/default-comfyui-bundle/ComfyUI/custom_nodes/ComfyUI-llama-cpp_vlm"); nodes_py=root/"nodes.py"; source=nodes_py.read_text(encoding="utf-8"); ast.parse(source); required=["llama_cpp_model_loader","llama_cpp_parameters","llama_cpp_instruct_adv"]; missing=[x for x in required if x not in source]; 
-if missing: raise SystemExit("Required node source missing: "+", ".join(missing)); print("Static nodes.py check: OK")'
+RUN python3 -c 'from pathlib import Path; import ast; root=Path("/default-comfyui-bundle/ComfyUI/custom_nodes/ComfyUI-llama-cpp_vlm"); nodes_py=root/"nodes.py"; source=nodes_py.read_text(encoding="utf-8"); ast.parse(source); required=["llama_cpp_model_loader","llama_cpp_parameters","llama_cpp_instruct_adv"]; missing=[x for x in required if x not in source]; assert not missing, "Required node source missing: "+", ".join(missing); print("Static nodes.py check: OK")'
 
 RUN mkdir -p "${COMFYUI_PATH}/models/diffusion_models" "${COMFYUI_PATH}/models/loras" "${COMFYUI_PATH}/models/vae" "${COMFYUI_PATH}/models/text_encoders" "${COMFYUI_PATH}/models/LLM" "${COMFYUI_PATH}/user/default/workflows"
 
@@ -140,9 +132,7 @@ RUN download-model "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/46af2
 
 COPY CARUSEL.json /tmp/CARUSEL.json
 
-RUN python3 -c 'import json; from pathlib import Path; path=Path("/tmp/CARUSEL.json"); workflow=json.loads(path.read_text(encoding="utf-8")); 
-assert isinstance(workflow,dict), "CARUSEL.json root is not an object"; nodes=workflow.get("nodes",[]); print("Workflow JSON: OK"); print("Workflow nodes:",len(nodes)); node_types={node.get("type") for node in nodes if isinstance(node,dict)}; required=["llama_cpp_model_loader","llama_cpp_parameters","llama_cpp_instruct_adv"]; missing=[x for x in required if x not in node_types]; 
-assert not missing, "Required workflow nodes missing: "+", ".join(missing); print("Required Llama nodes: OK")'
+RUN python3 -c 'import json; from pathlib import Path; path=Path("/tmp/CARUSEL.json"); workflow=json.loads(path.read_text(encoding="utf-8")); assert isinstance(workflow,dict), "CARUSEL.json root is not an object"; nodes=workflow.get("nodes",[]); print("Workflow JSON: OK"); print("Workflow nodes:",len(nodes)); node_types={node.get("type") for node in nodes if isinstance(node,dict)}; required=["llama_cpp_model_loader","llama_cpp_parameters","llama_cpp_instruct_adv"]; missing=[x for x in required if x not in node_types]; assert not missing, "Required workflow nodes missing: "+", ".join(missing); print("Required Llama nodes: OK")'
 
 RUN install -m 0644 /tmp/CARUSEL.json "${COMFYUI_PATH}/user/default/workflows/CARUSEL.json" && rm -f /tmp/CARUSEL.json
 
