@@ -1,0 +1,3093 @@
+{
+  "id": "2dff6d6c-d194-48ab-a0b4-45d47eefaae5",
+  "revision": 0,
+  "last_node_id": 79,
+  "last_link_id": 113,
+  "nodes": [
+    {
+      "id": 19,
+      "type": "SaveImage",
+      "pos": [
+        -641.2640991210938,
+        519.89697265625
+      ],
+      "size": [
+        604.58447265625,
+        880.6673583984375
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 29,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 21
+        },
+        {
+          "label": "filename_prefix",
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "image_urls",
+          "name": "image_urls",
+          "type": "STRING"
+        },
+        {
+          "label": "images",
+          "name": "images",
+          "type": "IMAGE"
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "SaveImage",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "ComfyUI"
+      ],
+      "color": "#323",
+      "bgcolor": "#535",
+      "shape": 1
+    },
+    {
+      "id": 1,
+      "type": "JDCN_StringToList",
+      "pos": [
+        -1499.0732421875,
+        380.5774230957031
+      ],
+      "size": [
+        232.06362915039062,
+        26
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 22,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "string",
+          "name": "string",
+          "type": "STRING",
+          "link": 43
+        }
+      ],
+      "outputs": [
+        {
+          "label": "list",
+          "name": "list",
+          "shape": 6,
+          "type": "STRING",
+          "links": [
+            17,
+            28
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "JDCN_StringToList",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": 1
+    },
+    {
+      "id": 14,
+      "type": "ShowText|pysssss",
+      "pos": [
+        -1487.166259765625,
+        432.75439453125
+      ],
+      "size": [
+        594.4517211914062,
+        476.0001220703125
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 24,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "text",
+          "name": "text",
+          "type": "STRING",
+          "link": 17
+        }
+      ],
+      "outputs": [
+        {
+          "label": "text",
+          "name": "text",
+          "shape": 6,
+          "type": "STRING"
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "ShowText|pysssss",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": 1
+    },
+    {
+      "id": 3,
+      "type": "CLIPLoader",
+      "pos": [
+        -1729.9246826171875,
+        262.32110595703125
+      ],
+      "size": [
+        422.8606262207031,
+        134.1304168701172
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "clip_name",
+          "name": "clip_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "clip_name"
+          }
+        },
+        {
+          "label": "type",
+          "name": "type",
+          "type": "COMBO",
+          "widget": {
+            "name": "type"
+          }
+        },
+        {
+          "label": "device",
+          "name": "device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            25,
+            34
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "CLIPLoader",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "qwen_2.5_vl_7b.safetensors",
+        "qwen_image",
+        "default"
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "shape": 1
+    },
+    {
+      "id": 24,
+      "type": "GetImageSize",
+      "pos": [
+        -562.7418823242188,
+        711.3316040039062
+      ],
+      "size": [
+        381.8685302734375,
+        311.0176086425781
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 64
+        }
+      ],
+      "outputs": [
+        {
+          "label": "width",
+          "name": "width",
+          "type": "INT",
+          "links": [
+            32
+          ]
+        },
+        {
+          "label": "height",
+          "name": "height",
+          "type": "INT",
+          "links": [
+            33
+          ]
+        },
+        {
+          "label": "batch_size",
+          "name": "batch_size",
+          "type": "INT"
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "GetImageSize",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159",
+      "shape": 1
+    },
+    {
+      "id": 4,
+      "type": "VAELoader",
+      "pos": [
+        -1729.8570556640625,
+        220.35459899902344
+      ],
+      "size": [
+        419.52288818359375,
+        99.52019500732422
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "vae_name",
+          "name": "vae_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_name"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            11,
+            26,
+            35
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "VAELoader",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "qwen_image_vae.safetensors"
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "shape": 1
+    },
+    {
+      "id": 16,
+      "type": "ModelSamplingAuraFlow",
+      "pos": [
+        -1728.048095703125,
+        179.04556274414062
+      ],
+      "size": [
+        427.3684997558594,
+        72.8245620727539
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 23,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 18
+        },
+        {
+          "label": "shift",
+          "name": "shift",
+          "type": "FLOAT",
+          "widget": {
+            "name": "shift"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            58
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "ModelSamplingAuraFlow",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        3.1000000000000005
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "shape": 1
+    },
+    {
+      "id": 37,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        -1730.193115234375,
+        306.0750427246094
+      ],
+      "size": [
+        414.53961181640625,
+        93.1184310913086
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 78
+        },
+        {
+          "label": "lora_name",
+          "name": "lora_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "lora_name"
+          }
+        },
+        {
+          "label": "strength_model",
+          "name": "strength_model",
+          "type": "FLOAT",
+          "widget": {
+            "name": "strength_model"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            60
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "Skin_Fix_rank64.safetensors",
+        1.0000000000000002
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "shape": 1
+    },
+    {
+      "id": 54,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        -1730.7684326171875,
+        350.2393798828125
+      ],
+      "size": [
+        419.34796142578125,
+        82
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 77
+        },
+        {
+          "label": "lora_name",
+          "name": "lora_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "lora_name"
+          }
+        },
+        {
+          "label": "strength_model",
+          "name": "strength_model",
+          "type": "FLOAT",
+          "widget": {
+            "name": "strength_model"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            78
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "real_life_qwen.safetensors",
+        1.0000000000000002
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "shape": 1
+    },
+    {
+      "id": 17,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        -1725.4971923828125,
+        395.78369140625
+      ],
+      "size": [
+        419.34796142578125,
+        82
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 21,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 60
+        },
+        {
+          "label": "lora_name",
+          "name": "lora_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "lora_name"
+          }
+        },
+        {
+          "label": "strength_model",
+          "name": "strength_model",
+          "type": "FLOAT",
+          "widget": {
+            "name": "strength_model"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            18
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "Qwen-Image-Edit-F2P.safetensors",
+        0.30000000000000004
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "shape": 1
+    },
+    {
+      "id": 18,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        -1720.3707275390625,
+        437.0977478027344
+      ],
+      "size": [
+        414.53961181640625,
+        93.1184310913086
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 20
+        },
+        {
+          "label": "lora_name",
+          "name": "lora_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "lora_name"
+          }
+        },
+        {
+          "label": "strength_model",
+          "name": "strength_model",
+          "type": "FLOAT",
+          "widget": {
+            "name": "strength_model"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            77
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "LoraLoaderModelOnly",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "Qwen-Image-Lightning-8steps-V2.0 bf16.safetensors",
+        0.7500000000000001
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "shape": 1
+    },
+    {
+      "id": 7,
+      "type": "UNETLoader",
+      "pos": [
+        -1725.1015625,
+        140.75143432617188
+      ],
+      "size": [
+        414.5524597167969,
+        97.45409393310547
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "unet_name",
+          "name": "unet_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "unet_name"
+          }
+        },
+        {
+          "label": "weight_dtype",
+          "name": "weight_dtype",
+          "type": "COMBO",
+          "widget": {
+            "name": "weight_dtype"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "MODEL",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            20
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "UNETLoader",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "FireRed-Image-Edit-1.1_fp8mixed_comfy.safetensors",
+        "default"
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "shape": 1
+    },
+    {
+      "id": 35,
+      "type": "llama_cpp_parameters",
+      "pos": [
+        -1515.69970703125,
+        180.6680450439453
+      ],
+      "size": [
+        267.71929931640625,
+        472.5790100097656
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "max_tokens",
+          "name": "max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "max_tokens"
+          }
+        },
+        {
+          "label": "top_k",
+          "name": "top_k",
+          "type": "INT",
+          "widget": {
+            "name": "top_k"
+          }
+        },
+        {
+          "label": "top_p",
+          "name": "top_p",
+          "type": "FLOAT",
+          "widget": {
+            "name": "top_p"
+          }
+        },
+        {
+          "label": "min_p",
+          "name": "min_p",
+          "type": "FLOAT",
+          "widget": {
+            "name": "min_p"
+          }
+        },
+        {
+          "label": "typical_p",
+          "name": "typical_p",
+          "type": "FLOAT",
+          "widget": {
+            "name": "typical_p"
+          }
+        },
+        {
+          "label": "temperature",
+          "name": "temperature",
+          "type": "FLOAT",
+          "widget": {
+            "name": "temperature"
+          }
+        },
+        {
+          "label": "repeat_penalty",
+          "name": "repeat_penalty",
+          "type": "FLOAT",
+          "widget": {
+            "name": "repeat_penalty"
+          }
+        },
+        {
+          "label": "frequency_penalty",
+          "name": "frequency_penalty",
+          "type": "FLOAT",
+          "widget": {
+            "name": "frequency_penalty"
+          }
+        },
+        {
+          "label": "mirostat_mode",
+          "name": "mirostat_mode",
+          "type": "INT",
+          "widget": {
+            "name": "mirostat_mode"
+          }
+        },
+        {
+          "label": "mirostat_eta",
+          "name": "mirostat_eta",
+          "type": "FLOAT",
+          "widget": {
+            "name": "mirostat_eta"
+          }
+        },
+        {
+          "label": "mirostat_tau",
+          "name": "mirostat_tau",
+          "type": "FLOAT",
+          "widget": {
+            "name": "mirostat_tau"
+          }
+        },
+        {
+          "label": "state_uid",
+          "name": "state_uid",
+          "type": "INT",
+          "widget": {
+            "name": "state_uid"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "parameters",
+          "name": "parameters",
+          "type": "LLAMACPPARAMS",
+          "links": [
+            54
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "llama_cpp_parameters",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        4096,
+        30,
+        0.9,
+        0.05,
+        1,
+        0.8,
+        1,
+        0,
+        1,
+        0,
+        0.1,
+        5,
+        -1
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": 1
+    },
+    {
+      "id": 34,
+      "type": "llama_cpp_model_loader",
+      "pos": [
+        -1518.9278564453125,
+        233.0041046142578
+      ],
+      "size": [
+        270,
+        202
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "model",
+          "name": "model",
+          "type": "COMBO",
+          "widget": {
+            "name": "model"
+          }
+        },
+        {
+          "label": "mmproj",
+          "name": "mmproj",
+          "type": "COMBO",
+          "widget": {
+            "name": "mmproj"
+          }
+        },
+        {
+          "label": "chat_handler",
+          "name": "chat_handler",
+          "type": "COMBO",
+          "widget": {
+            "name": "chat_handler"
+          }
+        },
+        {
+          "label": "n_ctx",
+          "name": "n_ctx",
+          "type": "INT",
+          "widget": {
+            "name": "n_ctx"
+          }
+        },
+        {
+          "label": "vram_limit",
+          "name": "vram_limit",
+          "type": "INT",
+          "widget": {
+            "name": "vram_limit"
+          }
+        },
+        {
+          "label": "image_min_tokens",
+          "name": "image_min_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "image_min_tokens"
+          }
+        },
+        {
+          "label": "image_max_tokens",
+          "name": "image_max_tokens",
+          "type": "INT",
+          "widget": {
+            "name": "image_max_tokens"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "llama_model",
+          "name": "llama_model",
+          "type": "LLAMACPPMODEL",
+          "links": [
+            53
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "llama_cpp_model_loader",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q8_0.gguf",
+        "Qwen3.5-9B-mmproj-F16.gguf",
+        "Qwen3.5",
+        8192,
+        -1,
+        0,
+        0,
+        false
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": 1
+    },
+    {
+      "id": 28,
+      "type": "ProcessString",
+      "pos": [
+        -1520.6708984375,
+        335.1944885253906
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "input_string",
+          "name": "input_string",
+          "type": "STRING",
+          "widget": {
+            "name": "input_string"
+          },
+          "link": 57
+        },
+        {
+          "label": "option",
+          "name": "option",
+          "type": "COMBO",
+          "widget": {
+            "name": "option"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "STRING",
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            43
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "ProcessString",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "",
+        "去空行"
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": 1
+    },
+    {
+      "id": 20,
+      "type": "CR Text Replace",
+      "pos": [
+        -1479.4783935546875,
+        282.7584533691406
+      ],
+      "size": [
+        270,
+        198
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "text",
+          "name": "text",
+          "type": "STRING",
+          "link": 22
+        },
+        {
+          "label": "find1",
+          "name": "find1",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "find1"
+          }
+        },
+        {
+          "label": "replace1",
+          "name": "replace1",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "replace1"
+          },
+          "link": 106
+        },
+        {
+          "label": "find2",
+          "name": "find2",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "find2"
+          }
+        },
+        {
+          "label": "replace2",
+          "name": "replace2",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "replace2"
+          }
+        },
+        {
+          "label": "find3",
+          "name": "find3",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "find3"
+          }
+        },
+        {
+          "label": "replace3",
+          "name": "replace3",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "replace3"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "STRING",
+          "name": "STRING",
+          "type": "*",
+          "links": [
+            56
+          ]
+        },
+        {
+          "label": "show_help",
+          "name": "show_help",
+          "type": "STRING"
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "CR Text Replace",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "[NUMBER]",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": 1
+    },
+    {
+      "id": 33,
+      "type": "llama_cpp_instruct_adv",
+      "pos": [
+        -1513.378662109375,
+        126.51141357421875
+      ],
+      "size": [
+        500.3509216308594,
+        462.42108154296875
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "llama_model",
+          "name": "llama_model",
+          "type": "LLAMACPPMODEL",
+          "link": 53
+        },
+        {
+          "label": "parameters",
+          "name": "parameters",
+          "shape": 7,
+          "type": "LLAMACPPARAMS",
+          "link": 54
+        },
+        {
+          "label": "images",
+          "name": "images",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 55
+        },
+        {
+          "label": "queue_handler",
+          "name": "queue_handler",
+          "shape": 7,
+          "type": "*"
+        },
+        {
+          "label": "preset_prompt",
+          "name": "preset_prompt",
+          "type": "COMBO",
+          "widget": {
+            "name": "preset_prompt"
+          }
+        },
+        {
+          "label": "custom_prompt",
+          "name": "custom_prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "custom_prompt"
+          }
+        },
+        {
+          "label": "system_prompt",
+          "name": "system_prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "system_prompt"
+          },
+          "link": 56
+        },
+        {
+          "label": "inference_mode",
+          "name": "inference_mode",
+          "type": "COMBO",
+          "widget": {
+            "name": "inference_mode"
+          }
+        },
+        {
+          "label": "max_frames",
+          "name": "max_frames",
+          "type": "INT",
+          "widget": {
+            "name": "max_frames"
+          }
+        },
+        {
+          "label": "max_size",
+          "name": "max_size",
+          "type": "INT",
+          "widget": {
+            "name": "max_size"
+          }
+        },
+        {
+          "label": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          }
+        },
+        {
+          "label": "force_offload",
+          "name": "force_offload",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "force_offload"
+          }
+        },
+        {
+          "label": "save_states",
+          "name": "save_states",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "save_states"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "output",
+          "name": "output",
+          "type": "STRING",
+          "links": [
+            57
+          ]
+        },
+        {
+          "label": "output_list",
+          "name": "output_list",
+          "shape": 6,
+          "type": "STRING"
+        },
+        {
+          "label": "state_uid",
+          "name": "state_uid",
+          "type": "INT"
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "llama_cpp_instruct_adv",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "Empty - Nothing",
+        "",
+        "",
+        "images",
+        24,
+        1536,
+        257205706558422,
+        "randomize",
+        true,
+        false
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": 1
+    },
+    {
+      "id": 42,
+      "type": "PreviewImage",
+      "pos": [
+        -626.255126953125,
+        1135.5482177734375
+      ],
+      "size": [
+        577.1444091796875,
+        870.6453857421875
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 30,
+      "mode": 4,
+      "inputs": [
+        {
+          "label": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 69
+        }
+      ],
+      "outputs": [
+        {
+          "label": "image_urls",
+          "name": "image_urls",
+          "type": "STRING"
+        },
+        {
+          "label": "images",
+          "name": "images",
+          "type": "IMAGE"
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "PreviewImage",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [],
+      "shape": 1
+    },
+    {
+      "id": 72,
+      "type": "SeedVR2LoadDiTModel",
+      "pos": [
+        -612.2158203125,
+        1216.841796875
+      ],
+      "size": [
+        307,
+        198
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "cache_model",
+          "name": "cache_model",
+          "shape": 7,
+          "type": "MODEL"
+        },
+        {
+          "label": "torch_compile_args",
+          "name": "torch_compile_args",
+          "shape": 7,
+          "type": "SEEDVR2_TORCH_COMPILE"
+        },
+        {
+          "label": "model",
+          "name": "model",
+          "type": "COMBO",
+          "widget": {
+            "name": "model"
+          }
+        },
+        {
+          "label": "device",
+          "name": "device",
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          }
+        },
+        {
+          "label": "blocks_to_swap",
+          "name": "blocks_to_swap",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "blocks_to_swap"
+          }
+        },
+        {
+          "label": "swap_io_components",
+          "name": "swap_io_components",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "swap_io_components"
+          }
+        },
+        {
+          "label": "offload_device",
+          "name": "offload_device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "offload_device"
+          }
+        },
+        {
+          "label": "attention_mode",
+          "name": "attention_mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "attention_mode"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "dit",
+          "name": "dit",
+          "type": "SEEDVR2_DIT",
+          "links": [
+            104
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "SeedVR2LoadDiTModel",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "seedvr2_ema_7b_sharp_fp8_e4m3fn_mixed_block35_fp16.safetensors",
+        "cuda:0",
+        36,
+        true,
+        "cpu",
+        "sdpa"
+      ]
+    },
+    {
+      "id": 69,
+      "type": "SeedVR2LoadVAEModel",
+      "pos": [
+        -659.4368896484375,
+        1153.6893310546875
+      ],
+      "size": [
+        312.8667907714844,
+        390.33837890625
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "cache_model",
+          "name": "cache_model",
+          "shape": 7,
+          "type": "MODEL"
+        },
+        {
+          "label": "torch_compile_args",
+          "name": "torch_compile_args",
+          "shape": 7,
+          "type": "SEEDVR2_TORCH_COMPILE"
+        },
+        {
+          "label": "model",
+          "name": "model",
+          "type": "COMBO",
+          "widget": {
+            "name": "model"
+          }
+        },
+        {
+          "label": "device",
+          "name": "device",
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          }
+        },
+        {
+          "label": "encode_tiled",
+          "name": "encode_tiled",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "encode_tiled"
+          }
+        },
+        {
+          "label": "encode_tile_size",
+          "name": "encode_tile_size",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "encode_tile_size"
+          }
+        },
+        {
+          "label": "encode_tile_overlap",
+          "name": "encode_tile_overlap",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "encode_tile_overlap"
+          }
+        },
+        {
+          "label": "decode_tiled",
+          "name": "decode_tiled",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "decode_tiled"
+          }
+        },
+        {
+          "label": "decode_tile_size",
+          "name": "decode_tile_size",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "decode_tile_size"
+          }
+        },
+        {
+          "label": "decode_tile_overlap",
+          "name": "decode_tile_overlap",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "decode_tile_overlap"
+          }
+        },
+        {
+          "label": "tile_debug",
+          "name": "tile_debug",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "tile_debug"
+          }
+        },
+        {
+          "label": "offload_device",
+          "name": "offload_device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "offload_device"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "vae",
+          "name": "vae",
+          "type": "SEEDVR2_VAE",
+          "links": [
+            85
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "SeedVR2LoadVAEModel",
+        "cnr_id": "seedvr2_videoupscaler",
+        "ver": "690cc39379c1481159ddd451368dbf2295930fc6",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "encode_tiled": true,
+            "encode_tile_overlap": true,
+            "cache_model": true,
+            "encode_tile_size": true,
+            "decode_tiled": true,
+            "decode_tile_size": true,
+            "tile_debug": true,
+            "offload_device": true,
+            "model": true,
+            "decode_tile_overlap": true,
+            "device": true
+          },
+          "input_ue_unconnectable": {},
+          "version": "7.4.1"
+        },
+        "widget_ue_connectable": {},
+        "aux_id": "ainvfx/ComfyUI-SeedVR2_VideoUpscaler"
+      },
+      "widgets_values": [
+        "ema_vae_fp16.safetensors",
+        "cuda:0",
+        true,
+        1024,
+        128,
+        true,
+        1024,
+        128,
+        "false",
+        "cpu"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
+    },
+    {
+      "id": 23,
+      "type": "EmptySD3LatentImage",
+      "pos": [
+        -633.4736938476562,
+        1310.798095703125
+      ],
+      "size": [
+        457.3369140625,
+        303.48602294921875
+      ],
+      "flags": {
+        "collapsed": true
+      },
+      "order": 20,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "width",
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": 32
+        },
+        {
+          "label": "height",
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": 33
+        },
+        {
+          "label": "batch_size",
+          "name": "batch_size",
+          "type": "INT",
+          "widget": {
+            "name": "batch_size"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "LATENT",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            30
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "EmptySD3LatentImage",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159",
+      "shape": 1
+    },
+    {
+      "id": 36,
+      "type": "CFGNorm",
+      "pos": [
+        -710.7374267578125,
+        36.10481643676758
+      ],
+      "size": [
+        390.2552490234375,
+        82
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 26,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 58
+        },
+        {
+          "label": "strength",
+          "name": "strength",
+          "type": "FLOAT",
+          "widget": {
+            "name": "strength"
+          }
+        },
+        {
+          "label": "pre_cfg",
+          "name": "pre_cfg",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "pre_cfg"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "patched_model",
+          "name": "patched_model",
+          "type": "MODEL",
+          "links": [
+            59
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "CFGNorm",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        1,
+        false
+      ],
+      "color": "#541454",
+      "bgcolor": "#400040",
+      "shape": 1
+    },
+    {
+      "id": 8,
+      "type": "KSampler",
+      "pos": [
+        -714.8788452148438,
+        157.8130645751953
+      ],
+      "size": [
+        395.0717468261719,
+        295.22967529296875
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 27,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "model",
+          "name": "model",
+          "type": "MODEL",
+          "link": 59
+        },
+        {
+          "label": "positive",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 29
+        },
+        {
+          "label": "negative",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 38
+        },
+        {
+          "label": "latent_image",
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 30
+        },
+        {
+          "label": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          }
+        },
+        {
+          "label": "steps",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          }
+        },
+        {
+          "label": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          }
+        },
+        {
+          "label": "sampler_name",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          }
+        },
+        {
+          "label": "scheduler",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          }
+        },
+        {
+          "label": "denoise",
+          "name": "denoise",
+          "type": "FLOAT",
+          "widget": {
+            "name": "denoise"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "LATENT",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            10
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "KSampler",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        778860779185495,
+        "randomize",
+        8,
+        1,
+        "er_sde",
+        "beta57",
+        1
+      ],
+      "color": "#541454",
+      "bgcolor": "#400040",
+      "shape": 1
+    },
+    {
+      "id": 9,
+      "type": "VAEDecode",
+      "pos": [
+        -713.2576904296875,
+        500.3342590332031
+      ],
+      "size": [
+        394.9921569824219,
+        89.12601470947266
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 28,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "samples",
+          "name": "samples",
+          "type": "LATENT",
+          "link": 10
+        },
+        {
+          "label": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "label": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            21,
+            69,
+            109
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "VAEDecode",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [],
+      "color": "#541454",
+      "bgcolor": "#400040",
+      "shape": 1
+    },
+    {
+      "id": 38,
+      "type": "LayerUtility: ImageScaleByAspectRatio V2",
+      "pos": [
+        -710.1092529296875,
+        633.3637084960938
+      ],
+      "size": [
+        389.72265625,
+        330
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "image",
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 62
+        },
+        {
+          "label": "mask",
+          "name": "mask",
+          "shape": 7,
+          "type": "MASK"
+        },
+        {
+          "label": "aspect_ratio",
+          "name": "aspect_ratio",
+          "type": "COMBO",
+          "widget": {
+            "name": "aspect_ratio"
+          }
+        },
+        {
+          "label": "proportional_width",
+          "name": "proportional_width",
+          "type": "INT",
+          "widget": {
+            "name": "proportional_width"
+          }
+        },
+        {
+          "label": "proportional_height",
+          "name": "proportional_height",
+          "type": "INT",
+          "widget": {
+            "name": "proportional_height"
+          }
+        },
+        {
+          "label": "fit",
+          "name": "fit",
+          "type": "COMBO",
+          "widget": {
+            "name": "fit"
+          }
+        },
+        {
+          "label": "method",
+          "name": "method",
+          "type": "COMBO",
+          "widget": {
+            "name": "method"
+          }
+        },
+        {
+          "label": "round_to_multiple",
+          "name": "round_to_multiple",
+          "type": "COMBO",
+          "widget": {
+            "name": "round_to_multiple"
+          }
+        },
+        {
+          "label": "scale_to_side",
+          "name": "scale_to_side",
+          "type": "COMBO",
+          "widget": {
+            "name": "scale_to_side"
+          }
+        },
+        {
+          "label": "scale_to_length",
+          "name": "scale_to_length",
+          "type": "INT",
+          "widget": {
+            "name": "scale_to_length"
+          }
+        },
+        {
+          "label": "background_color",
+          "name": "background_color",
+          "type": "STRING",
+          "widget": {
+            "name": "background_color"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            64
+          ]
+        },
+        {
+          "label": "mask",
+          "name": "mask",
+          "type": "MASK"
+        },
+        {
+          "label": "original_size",
+          "name": "original_size",
+          "type": "BOX"
+        },
+        {
+          "label": "width",
+          "name": "width",
+          "type": "INT"
+        },
+        {
+          "label": "height",
+          "name": "height",
+          "type": "INT"
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "LayerUtility: ImageScaleByAspectRatio V2",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "original",
+        1,
+        1,
+        "letterbox",
+        "lanczos",
+        "16",
+        "shortest",
+        1088,
+        "#000000"
+      ],
+      "color": "#541454",
+      "bgcolor": "#400040",
+      "shape": 1
+    },
+    {
+      "id": 58,
+      "type": "SeedVR2VideoUpscaler",
+      "pos": [
+        -704.3789672851562,
+        1067.389892578125
+      ],
+      "size": [
+        385.3055419921875,
+        412.2200012207031
+      ],
+      "flags": {},
+      "order": 31,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "link": 109
+        },
+        {
+          "label": "dit",
+          "name": "dit",
+          "type": "SEEDVR2_DIT",
+          "link": 104
+        },
+        {
+          "label": "vae",
+          "name": "vae",
+          "type": "SEEDVR2_VAE",
+          "link": 85
+        },
+        {
+          "label": "seed",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          }
+        },
+        {
+          "label": "resolution",
+          "name": "resolution",
+          "type": "INT",
+          "widget": {
+            "name": "resolution"
+          }
+        },
+        {
+          "label": "max_resolution",
+          "name": "max_resolution",
+          "type": "INT",
+          "widget": {
+            "name": "max_resolution"
+          }
+        },
+        {
+          "label": "batch_size",
+          "name": "batch_size",
+          "type": "INT",
+          "widget": {
+            "name": "batch_size"
+          },
+          "link": 107
+        },
+        {
+          "label": "uniform_batch_size",
+          "name": "uniform_batch_size",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "uniform_batch_size"
+          }
+        },
+        {
+          "label": "color_correction",
+          "name": "color_correction",
+          "type": "COMBO",
+          "widget": {
+            "name": "color_correction"
+          }
+        },
+        {
+          "label": "temporal_overlap",
+          "name": "temporal_overlap",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "temporal_overlap"
+          }
+        },
+        {
+          "label": "prepend_frames",
+          "name": "prepend_frames",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "prepend_frames"
+          }
+        },
+        {
+          "label": "input_noise_scale",
+          "name": "input_noise_scale",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "input_noise_scale"
+          }
+        },
+        {
+          "label": "latent_noise_scale",
+          "name": "latent_noise_scale",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "latent_noise_scale"
+          }
+        },
+        {
+          "label": "offload_device",
+          "name": "offload_device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "offload_device"
+          }
+        },
+        {
+          "label": "enable_debug",
+          "name": "enable_debug",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "enable_debug"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "image",
+          "name": "image",
+          "type": "IMAGE",
+          "links": [
+            108
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "SeedVR2VideoUpscaler",
+        "cnr_id": "seedvr2_videoupscaler",
+        "ver": "690cc39379c1481159ddd451368dbf2295930fc6",
+        "ue_properties": {
+          "widget_ue_connectable": {
+            "color_correction": true,
+            "batch_size": true,
+            "seed": true,
+            "uniform_batch_size": true,
+            "enable_debug": true,
+            "latent_noise_scale": true,
+            "prepend_frames": true,
+            "offload_device": true,
+            "temporal_overlap": true,
+            "input_noise_scale": true,
+            "resolution": true,
+            "max_resolution": true
+          },
+          "input_ue_unconnectable": {},
+          "version": "7.4.1"
+        },
+        "widget_ue_connectable": {
+          "resolution": true
+        },
+        "aux_id": "ainvfx/ComfyUI-SeedVR2_VideoUpscaler"
+      },
+      "widgets_values": [
+        42,
+        "fixed",
+        4096,
+        4096,
+        5,
+        true,
+        "lab",
+        0,
+        0,
+        0,
+        0,
+        "cpu",
+        false
+      ],
+      "color": "#541454",
+      "bgcolor": "#400040",
+      "shape": 1
+    },
+    {
+      "id": 12,
+      "type": "CR Text",
+      "pos": [
+        -1776.855712890625,
+        26.000699996948242
+      ],
+      "size": [
+        613.5927734375,
+        463.739501953125
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "text",
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "text",
+          "name": "text",
+          "type": "*",
+          "links": [
+            22
+          ]
+        },
+        {
+          "label": "show_help",
+          "name": "show_help",
+          "type": "STRING"
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "CR Text",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "You are a specialized prompt generation assistant for the QWEN-IMAGE-EDIT model.\n\nYour task is to analyze the single uploaded source image, identify and preserve the person's core visual characteristics (face, body shape, hairstyle, age appearance, ethnicity, skin tone, clothing category, and overall identity), then generate [NUMBER] unique and directly usable QWEN-IMAGE-EDIT prompts.\n\nEach prompt must introduce substantial visual variation while maintaining clear identity consistency with the original person.\n\n### Image Analysis Requirements\n\nAnalyze the uploaded image internally and determine:\n\n* Facial features\n* Body proportions\n* Hairstyle and hair color\n* Clothing type and outfit details\n* Pose and camera angle\n* Lighting conditions\n* Environment and background characteristics\n\nDo not output the analysis.\n\nAll modifications must remain realistic and achievable based on the original image. Avoid changes that conflict with the existing outfit, body position, scene structure, or visual logic.\n\nEach generated prompt must be significantly different from the others.\n\n### Prompt Generation Rules\n\nFor each prompt, preserve:\n\n* Same person identity\n* Same facial structure\n* Same body shape and proportions\n* Same hairstyle and hair color\n* Same clothing category and outfit consistency\n* Same general environment and scene characteristics\n\nOnly modify:\n\n* Facial expression\n* Eye direction and emotional gaze\n* Body pose\n* Camera angle\n* Composition\n\nUse diverse pose categories and avoid repeating similar poses.\n\nPossible expression categories include:\n\nSmile Expressions:\n\n* subtle smile\n* closed-mouth smile\n* bright smile\n* gentle smile\n* shy smile\n* looking back with a smile\n* joyful laughter\n\nCool Expressions:\n\n* serious expression\n* confident expression\n* detached expression\n* mysterious expression\n* thoughtful expression\n\nCute Expressions:\n\n* playful pout\n* wink\n* tilted head\n* innocent expression\n* energetic expression\n* cheerful expression\n\nEmotional Expressions:\n\n* melancholic look\n* warm gaze\n* determined expression\n* dreamy mood\n* healing smile\n* emotional atmosphere\n\nPossible eye directions:\n\nLooking at camera:\n\n* confident eye contact\n* affectionate gaze\n* soft romantic gaze\n* playful interaction\n* intense stare\n\nLooking away:\n\n* gazing into the distance\n* looking downward thoughtfully\n* side glance\n* contemplative look\n* hopeful expression\n\nPossible pose variations:\n\nStanding:\n\n* arms crossed\n* one hand in pocket\n* hand on waist\n* natural standing pose\n* walking candid shot\n* turning around\n* hair flip\n* leaning against a wall\n* touching an object\n* adjusting clothing\n\nSitting:\n\n* side sitting\n* crossed legs\n* relaxed sitting\n* sitting on stairs\n* sitting on the ground\n* sitting on window ledge\n* elbow on knee pose\n\nKneeling:\n\n* elegant kneeling\n* one-knee pose\n* forward leaning kneel\n* side kneel\n* kneeling while looking back\n\nSquatting:\n\n* relaxed squat\n* one-knee squat\n* interacting with surroundings\n* casual street-style squat\n\nDynamic Actions:\n\n* walking\n* turning\n* stretching\n* running\n* leaning\n* touching hair\n* touching face\n* looking over shoulder\n* interacting with props\n\nPossible camera angles:\n\nFront:\n\n* front full body\n* front half body\n* close-up portrait\n* medium portrait\n\nSide:\n\n* 45-degree side angle\n* full side profile\n* rear-side angle\n\nPerspective:\n\n* low-angle shot\n* eye-level shot\n* high-angle shot\n* overhead perspective\n\nCreative:\n\n* foreground blur\n* frame composition\n* cinematic composition\n* environmental portrait\n* silhouette composition\n\n### Output Format\n\nGenerate exactly [NUMBER] prompts.\n\nEach prompt must be a standalone paragraph.\n\nUse the following structure:\n\nKeep the same person, facial features, body proportions, hairstyle, clothing, and overall identity as the original image. Preserve the original environment and background characteristics. Change the expression to [expression]. Change the gaze to [eye direction and emotion]. Adjust the pose to [pose description]. Use [camera angle and composition]. Highly realistic photography, natural anatomy, soft lighting, accurate proportions, realistic skin texture, no distortion, preserve background details, professional photography, ultra-detailed, identity consistency with the original image.\n\nReturn only the prompts. Do not include explanations, numbering, analysis, or additional text.\n"
+      ],
+      "color": "#541454",
+      "bgcolor": "#400040",
+      "shape": 1
+    },
+    {
+      "id": 25,
+      "type": "TextEncodeQwenImageEditPlus",
+      "pos": [
+        -1151.8243408203125,
+        268.5595703125
+      ],
+      "size": [
+        392.77691650390625,
+        218.9607391357422
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 34
+        },
+        {
+          "label": "vae",
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": 35
+        },
+        {
+          "label": "image1",
+          "name": "image1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 36
+        },
+        {
+          "label": "image2",
+          "name": "image2",
+          "shape": 7,
+          "type": "IMAGE"
+        },
+        {
+          "label": "image3",
+          "name": "image3",
+          "shape": 7,
+          "type": "IMAGE"
+        },
+        {
+          "label": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "CONDITIONING",
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            38
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "TextEncodeQwenImageEditPlus",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#541454",
+      "bgcolor": "#400040",
+      "shape": 1
+    },
+    {
+      "id": 73,
+      "type": "ttN int",
+      "pos": [
+        -678.7127685546875,
+        1601.4957275390625
+      ],
+      "size": [
+        319.87060546875,
+        124.13307189941406
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "int",
+          "name": "int",
+          "type": "INT",
+          "widget": {
+            "name": "int"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "int",
+          "name": "int",
+          "type": "INT",
+          "links": [
+            107
+          ]
+        },
+        {
+          "label": "float",
+          "name": "float",
+          "type": "FLOAT"
+        },
+        {
+          "label": "text",
+          "name": "text",
+          "type": "STRING",
+          "links": [
+            106
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "ttN int",
+        "ttNnodeVersion": "1.0.0",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        9
+      ],
+      "color": "#233",
+      "bgcolor": "#355"
+    },
+    {
+      "id": 76,
+      "type": "Label (rgthree)",
+      "pos": [
+        -1755.725830078125,
+        522.8228149414062
+      ],
+      "size": [
+        1076.466796875,
+        300
+      ],
+      "flags": {
+        "allow_interaction": true
+      },
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "                                                                                                                                                     \n                                                                                                                                                     \n                                                                                                                                                     \n                                                                                                                                                     \n       ███████████              ████████     ████████              ████████     ████████               ████████    █████████████████████████         \n         ██████████             ████████     ████████              ████████     ████████               ████████    ███████████████████████████       \n          ██████████            ████████     ████████              ████████     ████████               ████████    ████████████████████████████      \n            ██████████          ████████     ████████              ████████     ████████               ████████    ████████          ███████████     \n             ██████████         ████████     ████████              ████████     ████████               ████████    ████████             ████████     \n              ███████████       ████████     ████████              ████████     ████████               ████████    ████████             ████████     \n                ██████████      ████████     ████████              ████████     ████████               ████████    ████████            ████████      \n                 ██████████     ████████     ██████████████████████████████     ████████               ████████    ███████████████████████████       \n           █       ██████████   ████████     ██████████████████████████████     ████████               ████████    █████████████████████████         \n          ██████    ██████████  ████████     ███████████████████████████████    ████████               ████████    ███████████████████████████       \n         █████████   ██████████ ████████     ███████████████████████████████    ████████               ████████    █████████████████████████████     \n         █████████     █████████████████     ████████              █████████    ████████               ████████    ████████              ████████    \n        █████████       ████████████████     ████████              ████████     ████████              █████████    ████████               ████████   \n       █████████          ██████████████     ████████              ████████     █████████            █████████     ████████               ████████   \n      █████████            █████████████     ████████              ████████      ██████████        ███████████     ████████             ██████████   \n     █████████              ████████████     ████████              ████████       ███████████████████████████      ██████████████████████████████    \n     █████████                ██████████     ████████              ████████        ████████████████████████        █████████████████████████████     \n    █████████                  █████████     ████████              ████████          ████████████████████          ███████████████████████████       \n   █████████                     ███████     ████████              █████████            ██████████████             ███████████████████████           \n                                                                                                                                                     \n                                                                                                                                                     \n",
+      "properties": {
+        "fontSize": 12,
+        "fontFamily": "monospace",
+        "fontColor": "#ffffff",
+        "textAlign": "left",
+        "backgroundColor": "transparent",
+        "padding": 0,
+        "borderRadius": 0,
+        "widget_ue_connectable": {}
+      },
+      "color": "#fff0",
+      "bgcolor": "#fff0"
+    },
+    {
+      "id": 71,
+      "type": "PreviewImage",
+      "pos": [
+        -1219.11572265625,
+        957.8652954101562
+      ],
+      "size": [
+        452.8453063964844,
+        779.677734375
+      ],
+      "flags": {
+        "pinned": true
+      },
+      "order": 32,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 108
+        }
+      ],
+      "outputs": [
+        {
+          "label": "image_urls",
+          "name": "image_urls",
+          "type": "STRING"
+        },
+        {
+          "label": "images",
+          "name": "images",
+          "type": "IMAGE"
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "PreviewImage",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [],
+      "color": "#233",
+      "bgcolor": "#355",
+      "shape": 1
+    },
+    {
+      "id": 15,
+      "type": "LoadImage",
+      "pos": [
+        -1751.625244140625,
+        954.5982666015625
+      ],
+      "size": [
+        468.23095703125,
+        782.4109497070312
+      ],
+      "flags": {
+        "pinned": true
+      },
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "image",
+          "name": "image",
+          "type": "COMBO",
+          "widget": {
+            "name": "image"
+          }
+        },
+        {
+          "label": "upload",
+          "name": "upload",
+          "type": "IMAGEUPLOAD",
+          "widget": {
+            "name": "upload"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "label": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            27,
+            36,
+            55,
+            62
+          ]
+        },
+        {
+          "label": "MASK",
+          "name": "MASK",
+          "type": "MASK"
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "LoadImage",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        "1702026b24725d6db6bb3cdafd1408a975bdf4dbe2a547c0cdb13e7deaf436c7.jpeg",
+        "image"
+      ],
+      "color": "#233",
+      "bgcolor": "#355",
+      "shape": 1
+    },
+    {
+      "id": 22,
+      "type": "TextEncodeQwenImageEditPlus",
+      "pos": [
+        -1153.975830078125,
+        28.069896697998047
+      ],
+      "size": [
+        390.4970397949219,
+        199.13609313964844
+      ],
+      "flags": {
+        "collapsed": false
+      },
+      "order": 25,
+      "mode": 0,
+      "inputs": [
+        {
+          "label": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 25
+        },
+        {
+          "label": "vae",
+          "name": "vae",
+          "shape": 7,
+          "type": "VAE",
+          "link": 26
+        },
+        {
+          "label": "image1",
+          "name": "image1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 27
+        },
+        {
+          "label": "image2",
+          "name": "image2",
+          "shape": 7,
+          "type": "IMAGE"
+        },
+        {
+          "label": "image3",
+          "name": "image3",
+          "shape": 7,
+          "type": "IMAGE"
+        },
+        {
+          "label": "prompt",
+          "name": "prompt",
+          "type": "STRING",
+          "widget": {
+            "name": "prompt"
+          },
+          "link": 28
+        }
+      ],
+      "outputs": [
+        {
+          "label": "CONDITIONING",
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            29
+          ]
+        }
+      ],
+      "title": "https://t.me/NHUB_Community",
+      "properties": {
+        "Node name for S&R": "TextEncodeQwenImageEditPlus",
+        "widget_ue_connectable": {}
+      },
+      "widgets_values": [
+        ""
+      ],
+      "color": "#541454",
+      "bgcolor": "#400040",
+      "shape": 1
+    }
+  ],
+  "links": [
+    [
+      10,
+      8,
+      0,
+      9,
+      0,
+      "LATENT"
+    ],
+    [
+      11,
+      4,
+      0,
+      9,
+      1,
+      "VAE"
+    ],
+    [
+      17,
+      1,
+      0,
+      14,
+      0,
+      "STRING"
+    ],
+    [
+      18,
+      17,
+      0,
+      16,
+      0,
+      "MODEL"
+    ],
+    [
+      20,
+      7,
+      0,
+      18,
+      0,
+      "MODEL"
+    ],
+    [
+      21,
+      9,
+      0,
+      19,
+      0,
+      "IMAGE"
+    ],
+    [
+      22,
+      12,
+      0,
+      20,
+      0,
+      "STRING"
+    ],
+    [
+      25,
+      3,
+      0,
+      22,
+      0,
+      "CLIP"
+    ],
+    [
+      26,
+      4,
+      0,
+      22,
+      1,
+      "VAE"
+    ],
+    [
+      27,
+      15,
+      0,
+      22,
+      2,
+      "IMAGE"
+    ],
+    [
+      28,
+      1,
+      0,
+      22,
+      5,
+      "STRING"
+    ],
+    [
+      29,
+      22,
+      0,
+      8,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      30,
+      23,
+      0,
+      8,
+      3,
+      "LATENT"
+    ],
+    [
+      32,
+      24,
+      0,
+      23,
+      0,
+      "INT"
+    ],
+    [
+      33,
+      24,
+      1,
+      23,
+      1,
+      "INT"
+    ],
+    [
+      34,
+      3,
+      0,
+      25,
+      0,
+      "CLIP"
+    ],
+    [
+      35,
+      4,
+      0,
+      25,
+      1,
+      "VAE"
+    ],
+    [
+      36,
+      15,
+      0,
+      25,
+      2,
+      "IMAGE"
+    ],
+    [
+      38,
+      25,
+      0,
+      8,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      43,
+      28,
+      0,
+      1,
+      0,
+      "STRING"
+    ],
+    [
+      53,
+      34,
+      0,
+      33,
+      0,
+      "LLAMACPPMODEL"
+    ],
+    [
+      54,
+      35,
+      0,
+      33,
+      1,
+      "LLAMACPPARAMS"
+    ],
+    [
+      55,
+      15,
+      0,
+      33,
+      2,
+      "IMAGE"
+    ],
+    [
+      56,
+      20,
+      0,
+      33,
+      6,
+      "STRING"
+    ],
+    [
+      57,
+      33,
+      0,
+      28,
+      0,
+      "STRING"
+    ],
+    [
+      58,
+      16,
+      0,
+      36,
+      0,
+      "MODEL"
+    ],
+    [
+      59,
+      36,
+      0,
+      8,
+      0,
+      "MODEL"
+    ],
+    [
+      60,
+      37,
+      0,
+      17,
+      0,
+      "MODEL"
+    ],
+    [
+      62,
+      15,
+      0,
+      38,
+      0,
+      "IMAGE"
+    ],
+    [
+      64,
+      38,
+      0,
+      24,
+      0,
+      "IMAGE"
+    ],
+    [
+      69,
+      9,
+      0,
+      42,
+      0,
+      "IMAGE"
+    ],
+    [
+      77,
+      18,
+      0,
+      54,
+      0,
+      "MODEL"
+    ],
+    [
+      78,
+      54,
+      0,
+      37,
+      0,
+      "MODEL"
+    ],
+    [
+      85,
+      69,
+      0,
+      58,
+      2,
+      "SEEDVR2_VAE"
+    ],
+    [
+      104,
+      72,
+      0,
+      58,
+      1,
+      "SEEDVR2_DIT"
+    ],
+    [
+      106,
+      73,
+      2,
+      20,
+      2,
+      "STRING"
+    ],
+    [
+      107,
+      73,
+      0,
+      58,
+      6,
+      "INT"
+    ],
+    [
+      108,
+      58,
+      0,
+      71,
+      0,
+      "IMAGE"
+    ],
+    [
+      109,
+      9,
+      0,
+      58,
+      0,
+      "IMAGE"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 5,
+      "title": "NHUB CAROUSEL GEN",
+      "bounding": [
+        -1790.1949462890625,
+        -90.67808532714844,
+        1504.1531982421875,
+        1864.1751708984375
+      ],
+      "color": "#a1309b",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 9,
+      "title": "LLM NHUB",
+      "bounding": [
+        -1786.349609375,
+        -49.9549674987793,
+        1040.840087890625,
+        553.3187255859375
+      ],
+      "color": "#a1309b",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 13,
+      "title": "SAMPLER NHUB",
+      "bounding": [
+        -732.7548828125,
+        -46.23562240600586,
+        434.38494873046875,
+        1022.94921875
+      ],
+      "color": "#a1309b",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 14,
+      "title": "UPSCALER NHUB",
+      "bounding": [
+        -730.9173583984375,
+        988.9921264648438,
+        432.37469482421875,
+        515.0679931640625
+      ],
+      "color": "#a1309b",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 15,
+      "title": "INPUT NHUB",
+      "bounding": [
+        -1762.6234130859375,
+        869.4841918945312,
+        491.4832763671875,
+        881.8093872070312
+      ],
+      "color": "#8AA",
+      "font_size": 24,
+      "flags": {
+        "pinned": true
+      }
+    },
+    {
+      "id": 16,
+      "title": "HOW MANY IMAGES?",
+      "bounding": [
+        -731.309814453125,
+        1511.3021240234375,
+        428.1933288574219,
+        242.23892211914062
+      ],
+      "color": "#8AA",
+      "font_size": 24,
+      "flags": {
+        "pinned": true
+      }
+    },
+    {
+      "id": 17,
+      "title": "OUTPUT NHUB",
+      "bounding": [
+        -1237.556640625,
+        870.5182495117188,
+        480.4385681152344,
+        879.86669921875
+      ],
+      "color": "#8AA",
+      "font_size": 24,
+      "flags": {
+        "pinned": true
+      }
+    }
+  ],
+  "config": {},
+  "extra": {
+    "links_added_by_ue": [],
+    "VHS_KeepIntermediate": true,
+    "ue_links": [],
+    "VHS_MetadataImage": true,
+    "0246.VERSION": [
+      0,
+      0,
+      4
+    ],
+    "VHS_latentpreviewrate": 0,
+    "frontendVersion": "1.23.0",
+    "VHS_latentpreview": false,
+    "ds": {
+      "scale": 0.45,
+      "offset": [
+        2744.9859907362197,
+        415.8603206210666
+      ]
+    },
+    "pixaromaGroups": [],
+    "KKvideo_latentpreview": false,
+    "KKvideo_latentpreviewrate": 0
+  },
+  "version": 0.4
+}
