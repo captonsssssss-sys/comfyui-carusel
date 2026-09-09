@@ -12,7 +12,7 @@ ENV PIP_NO_CACHE_DIR=1
 
 
 # ============================================================
-# 1. BASE IMAGE CHECK
+# 1. CHECK BASE IMAGE
 # ============================================================
 
 RUN set -eux; \
@@ -21,24 +21,20 @@ RUN set -eux; \
     echo "=========================================="; \
     echo "ComfyUI: ${COMFYUI_PATH}"; \
     echo ""; \
-    echo "Python:"; \
-    command -v python3; \
     python3 --version; \
-    echo ""; \
-    echo "Pip:"; \
     python3 -m pip --version; \
     echo ""; \
-    echo "Build tools:"; \
-    command -v gcc; \
-    command -v g++; \
-    command -v cmake; \
-    command -v make; \
+    echo "Python executable:"; \
+    command -v python3; \
     echo ""; \
     echo "CUDA:"; \
-    command -v nvcc; \
-    nvcc --version; \
+    if command -v nvcc >/dev/null 2>&1; then \
+        nvcc --version; \
+    else \
+        echo "nvcc not found - using prebuilt llama-cpp wheel"; \
+    fi; \
     echo ""; \
-    echo "Base image check passed"
+    echo "Base image check complete"
 
 
 # ============================================================
@@ -53,7 +49,7 @@ RUN set -eux; \
 
 
 # ============================================================
-# 3. UPDATE PYTHON BUILD TOOLS
+# 3. UPDATE PYTHON PACKAGING TOOLS
 # ============================================================
 
 RUN set -eux; \
@@ -66,14 +62,16 @@ RUN set -eux; \
 
 
 # ============================================================
-# 4. DOWNLOAD COMFYUI-LLAMA-CPP-VLM
+# 4. INSTALL COMFYUI-LLAMA-CPP-VLM
 #
-# Source:
+# Repository:
 # https://github.com/lihaoyun6/ComfyUI-llama-cpp_vlm
 #
-# Не используем apt/apk/dnf.
-# Не используем git.
-# Репозиторий скачивается напрямую через Python.
+# Download directly from GitHub.
+# No apt.
+# No apk.
+# No dnf.
+# No git.
 # ============================================================
 
 RUN set -eux; \
@@ -83,77 +81,73 @@ import shutil
 import urllib.request
 import zipfile
 
-comfy_path = "/default-comfyui-bundle/ComfyUI"
-node_path = os.path.join(
-    comfy_path,
+COMFYUI = "/default-comfyui-bundle/ComfyUI"
+
+NODE = os.path.join(
+    COMFYUI,
     "custom_nodes",
-    "ComfyUI-llama-cpp_vlm",
+    "ComfyUI-llama-cpp_vlm"
 )
 
-tmp_zip = "/tmp/llama-cpp-vlm.zip"
-tmp_dir = "/tmp/llama-cpp-vlm"
+ZIP = "/tmp/llama-cpp-vlm.zip"
+TMP = "/tmp/llama-cpp-vlm"
 
-url = (
+URL = (
     "https://github.com/"
     "lihaoyun6/ComfyUI-llama-cpp_vlm/"
     "archive/refs/heads/main.zip"
 )
 
 print("Downloading ComfyUI-llama-cpp_vlm...")
-urllib.request.urlretrieve(url, tmp_zip)
+urllib.request.urlretrieve(URL, ZIP)
 
-print("Download complete")
+if os.path.exists(TMP):
+    shutil.rmtree(TMP)
 
-if os.path.exists(tmp_dir):
-    shutil.rmtree(tmp_dir)
+if os.path.exists(NODE):
+    shutil.rmtree(NODE)
 
-if os.path.exists(node_path):
-    shutil.rmtree(node_path)
+os.makedirs(TMP, exist_ok=True)
 
-os.makedirs(tmp_dir, exist_ok=True)
+print("Extracting...")
 
-print("Extracting archive...")
+with zipfile.ZipFile(ZIP, "r") as archive:
+    archive.extractall(TMP)
 
-with zipfile.ZipFile(tmp_zip, "r") as archive:
-    archive.extractall(tmp_dir)
-
-extracted_dirs = [
-    os.path.join(tmp_dir, name)
-    for name in os.listdir(tmp_dir)
-    if os.path.isdir(os.path.join(tmp_dir, name))
+dirs = [
+    os.path.join(TMP, x)
+    for x in os.listdir(TMP)
+    if os.path.isdir(os.path.join(TMP, x))
 ]
 
-if not extracted_dirs:
+if not dirs:
     raise RuntimeError(
-        "Could not find extracted llama node directory"
+        "Could not find extracted repository"
     )
 
-source_dir = extracted_dirs[0]
+shutil.move(dirs[0], NODE)
 
-shutil.move(source_dir, node_path)
+os.remove(ZIP)
+shutil.rmtree(TMP, ignore_errors=True)
 
-os.remove(tmp_zip)
-shutil.rmtree(tmp_dir, ignore_errors=True)
-
-nodes_file = os.path.join(node_path, "nodes.py")
-
-if not os.path.isfile(nodes_file):
+if not os.path.isfile(
+    os.path.join(NODE, "nodes.py")
+):
     raise RuntimeError(
-        f"nodes.py not found: {nodes_file}"
+        "ComfyUI-llama-cpp_vlm nodes.py not found"
     )
 
-print("ComfyUI-llama-cpp_vlm installed:")
-print(node_path)
+print("ComfyUI-llama-cpp_vlm installed")
+print(NODE)
 PY
 
 
 # ============================================================
-# 5. VERIFY DOWNLOADED LLAMA NODE
+# 5. VERIFY LLAMA NODE FILES
 # ============================================================
 
 RUN set -eux; \
     NODE_PATH="${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm"; \
-    test -d "${NODE_PATH}"; \
     test -f "${NODE_PATH}/nodes.py"; \
     grep -q "llama_cpp_model_loader" "${NODE_PATH}/nodes.py"; \
     grep -q "llama_cpp_instruct_adv" "${NODE_PATH}/nodes.py"; \
@@ -171,16 +165,13 @@ RUN set -eux; \
 RUN set -eux; \
     NODE_PATH="${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm"; \
     if [ -f "${NODE_PATH}/requirements.txt" ]; then \
-        echo "Installing llama node requirements..."; \
         python3 -m pip install \
             -r "${NODE_PATH}/requirements.txt"; \
-    else \
-        echo "No requirements.txt found"; \
     fi
 
 
 # ============================================================
-# 7. PYTHON DEPENDENCIES REQUIRED BY nodes.py
+# 7. GENERAL PYTHON DEPENDENCIES
 # ============================================================
 
 RUN set -eux; \
@@ -191,7 +182,7 @@ RUN set -eux; \
 
 
 # ============================================================
-# 8. REMOVE EXISTING LLAMA-CPP-PYTHON
+# 8. REMOVE OLD LLAMA-CPP-PYTHON
 # ============================================================
 
 RUN set -eux; \
@@ -202,30 +193,164 @@ RUN set -eux; \
 
 
 # ============================================================
-# 9. BUILD LLAMA-CPP-PYTHON WITH CUDA
+# 9. INSTALL PREBUILT LLAMA-CPP-PYTHON
 #
-# The node requires:
+# IMPORTANT:
 #
-#   import llama_cpp
-#   from llama_cpp import Llama
+# НЕ собираем llama-cpp-python из исходников.
 #
-# CUDA backend:
+# Берём готовый wheel из релизов JamePeng.
 #
-#   GGML_CUDA=on
+# Repository:
+# https://github.com/JamePeng/llama-cpp-python
 #
-# Models are NOT included in Docker.
+# Custom node itself recommends this source.
 # ============================================================
 
 RUN set -eux; \
-    echo "=========================================="; \
-    echo "Building llama-cpp-python with CUDA"; \
-    echo "=========================================="; \
-    CMAKE_ARGS="-DGGML_CUDA=on" \
-    FORCE_CMAKE=1 \
-    python3 -m pip install \
-        --no-build-isolation \
-        --no-cache-dir \
-        llama-cpp-python
+    python3 - <<'PY'
+import json
+import platform
+import sys
+import urllib.request
+import subprocess
+import tempfile
+import os
+import re
+
+PYTHON_VERSION = f"cp{sys.version_info.major}{sys.version_info.minor}"
+ARCH = platform.machine().lower()
+
+print("==========================================")
+print("Searching JamePeng llama-cpp-python wheel")
+print("==========================================")
+print("Python ABI:", PYTHON_VERSION)
+print("Architecture:", ARCH)
+
+if ARCH not in ("x86_64", "amd64"):
+    raise RuntimeError(
+        f"Unsupported architecture: {ARCH}"
+    )
+
+API_URL = (
+    "https://api.github.com/repos/"
+    "JamePeng/llama-cpp-python/releases/latest"
+)
+
+request = urllib.request.Request(
+    API_URL,
+    headers={
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "Docker-build"
+    }
+)
+
+print("Requesting latest release...")
+
+with urllib.request.urlopen(
+    request,
+    timeout=60
+) as response:
+    release = json.load(response)
+
+tag = release.get("tag_name", "unknown")
+
+print("Latest release:", tag)
+
+assets = release.get("assets", [])
+
+wheels = []
+
+for asset in assets:
+    name = asset.get("name", "")
+    url = asset.get("browser_download_url", "")
+
+    if not name.endswith(".whl"):
+        continue
+
+    lower = name.lower()
+
+    if PYTHON_VERSION.lower() not in lower:
+        continue
+
+    if "linux" not in lower:
+        continue
+
+    if not (
+        "x86_64" in lower
+        or "amd64" in lower
+    ):
+        continue
+
+    wheels.append(
+        {
+            "name": name,
+            "url": url
+        }
+    )
+
+print("")
+print("Compatible wheels found:")
+
+for wheel in wheels:
+    print(" -", wheel["name"])
+
+if not wheels:
+    raise RuntimeError(
+        "No compatible JamePeng llama-cpp-python "
+        f"wheel found for {PYTHON_VERSION} / Linux x86_64"
+    )
+
+
+# Prefer CUDA builds.
+cuda_wheels = [
+    wheel
+    for wheel in wheels
+    if any(
+        x in wheel["name"].lower()
+        for x in (
+            "cuda",
+            "cu12",
+            "cu11",
+            "cu118",
+            "cu121",
+            "cu122",
+            "cu123",
+            "cu124",
+            "cu125",
+            "cu126",
+            "cu127",
+            "cu128",
+            "cu129"
+        )
+    )
+]
+
+if cuda_wheels:
+    selected = cuda_wheels[0]
+else:
+    selected = wheels[0]
+
+print("")
+print("Selected wheel:")
+print(selected["name"])
+print("")
+print("Installing prebuilt wheel...")
+
+subprocess.check_call(
+    [
+        sys.executable,
+        "-m",
+        "pip",
+        "install",
+        "--no-cache-dir",
+        selected["url"]
+    ]
+)
+
+print("")
+print("JamePeng llama-cpp-python wheel installed")
+PY
 
 
 # ============================================================
@@ -237,8 +362,9 @@ RUN set -eux; \
 import llama_cpp
 
 print("==========================================")
-print("llama_cpp import successful")
-print("Version:", getattr(
+print("llama_cpp successfully imported")
+print("Version:")
+print(getattr(
     llama_cpp,
     "__version__",
     "unknown"
@@ -259,34 +385,33 @@ from llama_cpp.llama_chat_format import (
     MiniCPMv26ChatHandler,
 )
 
-print("Vision chat handlers: OK")
+print("Vision handlers: OK")
 
 try:
     from llama_cpp.llama_chat_format import Qwen35ChatHandler
     print("Qwen35ChatHandler: AVAILABLE")
 except ImportError:
     print(
-        "WARNING: Qwen35ChatHandler is not available "
-        "in this llama-cpp-python build"
+        "WARNING: Qwen35ChatHandler is NOT available"
     )
 
-print("llama_cpp verification passed")
+print("")
+print("llama_cpp verification PASSED")
 PY
 
 
 # ============================================================
-# 11. CHECK LLAMA CUSTOM NODE PYTHON SYNTAX
+# 11. PYTHON COMPILE CHECK
 # ============================================================
 
 RUN set -eux; \
-    NODE_PATH="${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm"; \
     python3 -m py_compile \
-        "${NODE_PATH}/nodes.py"; \
+        "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm/nodes.py"; \
     echo "llama custom node Python syntax: OK"
 
 
 # ============================================================
-# 12. VERIFY COMFYUI PYTHON ENVIRONMENT
+# 12. COMFYUI PYTHON CHECK
 # ============================================================
 
 RUN set -eux; \
@@ -302,22 +427,22 @@ sys.path.insert(
 import folder_paths
 
 print("==========================================")
-print("ComfyUI Python environment: OK")
+print("ComfyUI Python environment OK")
 print("models_dir:", folder_paths.models_dir)
 print("==========================================")
 PY
 
 
 # ============================================================
-# 13. CREATE LLM DIRECTORY
+# 13. CREATE LLM MODEL DIRECTORY
 #
-# Heavy models are NOT stored in Docker.
+# MODELS ARE NOT STORED IN DOCKER.
 #
 # RunPod Volume:
 #
 # /comfyui/models/LLM/
 #
-# Expected models:
+# Files:
 #
 # Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q8_0.gguf
 # Qwen3.5-9B-mmproj-F16.gguf
@@ -348,7 +473,8 @@ RUN set -eux; \
                 -name "workflows" \
                 -print0 | \
             while IFS= read -r -d '' WORKFLOW_DIR; do \
-                echo "Cleaning: ${WORKFLOW_DIR}"; \
+                echo "Cleaning workflow directory:"; \
+                echo "${WORKFLOW_DIR}"; \
                 find "${WORKFLOW_DIR}" \
                     -mindepth 1 \
                     -maxdepth 1 \
@@ -360,15 +486,6 @@ RUN set -eux; \
 
 # ============================================================
 # 15. COPY CARUSEL WORKFLOW
-#
-# Repository structure:
-#
-# comfyui-carusel/
-# ├── Dockerfile
-# ├── CARUSEL.json
-# └── .github/
-#     └── workflows/
-#         └── docker.yml
 # ============================================================
 
 COPY CARUSEL.json /tmp/CARUSEL.json
@@ -435,36 +552,30 @@ print("Total nodes:", len(nodes))
 print("Unique node types:", len(node_types))
 
 
-# ------------------------------------------------------------
-# LLAMA NODES
-# ------------------------------------------------------------
-
 required_llama_nodes = {
     "llama_cpp_parameters",
     "llama_cpp_model_loader",
     "llama_cpp_instruct_adv",
 }
 
-missing_llama = (
+missing = (
     required_llama_nodes - node_types
 )
 
-if missing_llama:
+if missing:
     raise RuntimeError(
-        "Missing llama nodes in workflow: "
-        + ", ".join(sorted(missing_llama))
+        "Missing llama nodes: "
+        + ", ".join(sorted(missing))
     )
 
 print("")
 print("Required llama nodes:")
 
-for node_type in sorted(required_llama_nodes):
+for node_type in sorted(
+    required_llama_nodes
+):
     print("  OK:", node_type)
 
-
-# ------------------------------------------------------------
-# SEEDVR2
-# ------------------------------------------------------------
 
 seedvr_nodes = {
     "SeedVR2LoadDiTModel",
@@ -478,15 +589,11 @@ found_seedvr = (
 
 if found_seedvr:
     print("")
-    print("SeedVR2 nodes detected:")
+    print("SeedVR2 nodes:")
 
     for node_type in sorted(found_seedvr):
         print("  -", node_type)
 
-
-# ------------------------------------------------------------
-# OTHER KNOWN CUSTOM NODES
-# ------------------------------------------------------------
 
 known_custom_nodes = {
     "JDCN_StringToList",
@@ -504,15 +611,11 @@ found_custom = (
 )
 
 print("")
-print("Known custom nodes detected:")
+print("Known custom nodes:")
 
 for node_type in sorted(found_custom):
     print("  -", node_type)
 
-
-# ------------------------------------------------------------
-# MODEL REFERENCES
-# ------------------------------------------------------------
 
 print("")
 print("Llama model references:")
@@ -531,7 +634,27 @@ PY
 
 
 # ============================================================
-# 17. FINAL FILE CHECK
+# 17. FINAL LLAMA NODE IMPORT
+# ============================================================
+
+RUN set -eux; \
+    cd "${COMFYUI_PATH}"; \
+    python3 - <<'PY'
+import sys
+
+sys.path.insert(
+    0,
+    "/default-comfyui-bundle/ComfyUI"
+)
+
+print("Testing llama custom node import...")
+
+import custom_nodes.ComfyUI-llama-cpp_vlm
+PY
+
+
+# ============================================================
+# 18. FINAL CHECKS
 # ============================================================
 
 RUN set -eux; \
@@ -547,17 +670,17 @@ RUN set -eux; \
     echo "=================================================="; \
     echo "CARUSEL DOCKER IMAGE READY"; \
     echo "=================================================="; \
-    echo "ComfyUI:        ${COMFYUI_PATH}"; \
-    echo "Llama node:     INSTALLED"; \
-    echo "llama_cpp:      INSTALLED"; \
-    echo "CUDA build:     ENABLED"; \
-    echo "CARUSEL.json:   INSTALLED"; \
-    echo "LLM models:     EXTERNAL VOLUME"; \
+    echo "ComfyUI:       ${COMFYUI_PATH}"; \
+    echo "Llama node:    INSTALLED"; \
+    echo "llama_cpp:     INSTALLED"; \
+    echo "CUDA wheel:    PREBUILT"; \
+    echo "CARUSEL:       INSTALLED"; \
+    echo "LLM models:    EXTERNAL VOLUME"; \
     echo "=================================================="
 
 
 # ============================================================
-# 18. FINAL WORKING DIRECTORY
+# 19. WORKDIR
 # ============================================================
 
 WORKDIR ${COMFYUI_PATH}
