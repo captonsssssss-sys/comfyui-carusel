@@ -38,35 +38,18 @@ RUN set -eux; \
 # 3. Определяем Python ABI
 #
 # Поддерживаем готовые Linux wheels:
-#
-# cp310
-# cp311
-# cp312
-# cp313
-# cp314
-#
-# Никакого GitHub API.
+# cp310 / cp311 / cp312 / cp313 / cp314
 # ============================================================
 
 RUN set -eux; \
     PY_VER="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"; \
     echo "Detected Python: ${PY_VER}"; \
     case "${PY_VER}" in \
-        3.10) \
-            echo "Python ABI: cp310"; \
-            ;; \
-        3.11) \
-            echo "Python ABI: cp311"; \
-            ;; \
-        3.12) \
-            echo "Python ABI: cp312"; \
-            ;; \
-        3.13) \
-            echo "Python ABI: cp313"; \
-            ;; \
-        3.14) \
-            echo "Python ABI: cp314"; \
-            ;; \
+        3.10) echo "Python ABI: cp310" ;; \
+        3.11) echo "Python ABI: cp311" ;; \
+        3.12) echo "Python ABI: cp312" ;; \
+        3.13) echo "Python ABI: cp313" ;; \
+        3.14) echo "Python ABI: cp314" ;; \
         *) \
             echo "ERROR: Unsupported Python version: ${PY_VER}"; \
             exit 1; \
@@ -113,7 +96,7 @@ RUN set -eux; \
 
 
 # ============================================================
-# 7. Выбираем правильный готовый Linux CUDA wheel
+# 7. Устанавливаем конкретный Linux CUDA wheel
 #
 # JamePeng
 # llama-cpp-python 0.3.49
@@ -186,8 +169,6 @@ RUN set -eux; \
 # 9. Статическая проверка custom node
 #
 # НЕ импортируем nodes.py.
-# Это важно: импорт ComfyUI во время GitHub Actions
-# может попытаться обратиться к NVIDIA.
 # ============================================================
 
 RUN set -eux; \
@@ -198,14 +179,15 @@ RUN set -eux; \
 # 10. Создаём необходимые директории
 #
 # GGUF-модели НЕ помещаем в Docker.
-# Они должны находиться на RunPod Volume:
+# Они находятся на RunPod Volume:
 #
 # models/LLM/
 # ============================================================
 
 RUN set -eux; \
-    mkdir -p "${COMFYUI_PATH}/models/LLM"; \
-    mkdir -p "${COMFYUI_PATH}/workflows"
+    mkdir -p \
+        "${COMFYUI_PATH}/models/LLM" \
+        "${COMFYUI_PATH}/user/default/workflows"
 
 
 # ============================================================
@@ -217,22 +199,22 @@ COPY CARUSEL.json /tmp/CARUSEL.json
 
 # ============================================================
 # 12. Проверяем JSON workflow
-#
-# Только синтаксис JSON.
 # ============================================================
 
 RUN set -eux; \
-    python3 -c "import json; path='/tmp/CARUSEL.json'; data=json.load(open(path, 'r', encoding='utf-8')); assert isinstance(data, dict), 'CARUSEL.json root must be a JSON object'; nodes=data.get('nodes', []); links=data.get('links', []); print('=============================================='); print('CARUSEL.json'); print('=============================================='); print('JSON syntax: OK'); print('Workflow ID:', data.get('id')); print('Workflow version:', data.get('version')); print('Nodes:', len(nodes)); print('Links:', len(links)); llama=sorted(set(n.get('type') for n in nodes if isinstance(n.get('type'), str) and n.get('type').startswith('llama_cpp_'))); print(''); print('Llama nodes in workflow:'); [print('  ', x) for x in llama]; print('==============================================' )"
+    python3 -c "import json; path='/tmp/CARUSEL.json'; data=json.load(open(path, 'r', encoding='utf-8')); assert isinstance(data, dict), 'CARUSEL.json root must be a JSON object'; nodes=data.get('nodes', []); links=data.get('links', []); print('=============================================='); print('CARUSEL.json'); print('=============================================='); print('JSON syntax: OK'); print('Workflow ID:', data.get('id')); print('Workflow version:', data.get('version')); print('Nodes:', len(nodes)); print('Links:', len(links)); llama=sorted(set(n.get('type') for n in nodes if isinstance(n.get('type'), str) and n.get('type').startswith('llama_cpp_'))); print(''); print('Llama nodes in workflow:'); [print('  ', x) for x in llama]; print('==============================================')"
 
 
 # ============================================================
-# 13. Устанавливаем workflow в ComfyUI
+# 13. Устанавливаем workflow в правильную папку ComfyUI
 # ============================================================
 
 RUN set -eux; \
-    cp /tmp/CARUSEL.json "${COMFYUI_PATH}/workflows/CARUSEL.json"; \
-    rm -f /tmp/CARUSEL.json; \
-    test -f "${COMFYUI_PATH}/workflows/CARUSEL.json"
+    install -m 0644 \
+        "/tmp/CARUSEL.json" \
+        "${COMFYUI_PATH}/user/default/workflows/CARUSEL.json"; \
+    rm -f "/tmp/CARUSEL.json"; \
+    test -f "${COMFYUI_PATH}/user/default/workflows/CARUSEL.json"
 
 
 # ============================================================
@@ -248,7 +230,7 @@ RUN set -eux; \
     test -d "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm"; \
     test -f "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm/nodes.py"; \
     test -d "${COMFYUI_PATH}/models/LLM"; \
-    test -f "${COMFYUI_PATH}/workflows/CARUSEL.json"; \
+    test -f "${COMFYUI_PATH}/user/default/workflows/CARUSEL.json"; \
     python3 -c "import llama_cpp; print('FINAL llama_cpp import: OK')"; \
     echo ""; \
     echo "=============================================="; \
@@ -259,6 +241,7 @@ RUN set -eux; \
     echo "Platform: Linux x86_64"; \
     echo "Custom node: ComfyUI-llama-cpp_vlm"; \
     echo "Workflow: CARUSEL.json"; \
+    echo "Workflow path: user/default/workflows"; \
     echo "LLM models: RunPod Volume"; \
     echo "=============================================="
 
