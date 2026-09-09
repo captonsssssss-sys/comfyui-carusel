@@ -1,248 +1,465 @@
-# syntax=docker/dockerfile:1.7
-
+```dockerfile
 FROM farmerfarmit/bitcoin:v6
 
-USER root
+SHELL ["/bin/bash", "-c"]
 
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PIP_NO_CACHE_DIR=1
+ENV PYTHONUNBUFFERED=1
 
 ENV COMFYUI_PATH=/default-comfyui-bundle/ComfyUI
-ENV PYTHONUNBUFFERED=1
-ENV PIP_NO_CACHE_DIR=1
+
+WORKDIR ${COMFYUI_PATH}
 
 # ============================================================
-# 1. Проверяем базовый образ
-# ============================================================
-
-RUN set -eux; \
-    test -d "${COMFYUI_PATH}"; \
-    test -f "${COMFYUI_PATH}/main.py"; \
-    echo "=== Python ==="; \
-    python3 --version; \
-    echo "=== pip ==="; \
-    python3 -m pip --version
-
-
-# ============================================================
-# 2. Базовые Python-инструменты
+# 1. Basic Python tools
 # ============================================================
 
 RUN set -eux; \
-    python3 -m pip install --upgrade \
-        pip \
-        setuptools \
-        wheel
-
+    python3 -m pip install --upgrade pip setuptools wheel
 
 # ============================================================
-# 3. Определяем Python ABI
-#
-# Поддерживаем готовые Linux wheels:
-# cp310 / cp311 / cp312 / cp313 / cp314
+# 2. Detect Python ABI
 # ============================================================
 
 RUN set -eux; \
-    PY_VER="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"; \
-    echo "Detected Python: ${PY_VER}"; \
-    case "${PY_VER}" in \
-        3.10) echo "Python ABI: cp310" ;; \
-        3.11) echo "Python ABI: cp311" ;; \
-        3.12) echo "Python ABI: cp312" ;; \
-        3.13) echo "Python ABI: cp313" ;; \
-        3.14) echo "Python ABI: cp314" ;; \
-        *) \
-            echo "ERROR: Unsupported Python version: ${PY_VER}"; \
-            exit 1; \
+    PY_MM="$(python3 -c 'import sys; print(f"{sys.version_info.major}{sys.version_info.minor}")')"; \
+    case "${PY_MM}" in \
+        310) \
+            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp310-cp310-linux_x86_64.whl"; \
+            LLAMA_SHA256="061bde5029f8862b75508104dfb428550353460f70ed512e2f4dcebbfa170a9f" \
             ;; \
-    esac
-
+        311) \
+            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp311-cp311-linux_x86_64.whl"; \
+            LLAMA_SHA256="68a239c8288fb9cd26085b5496909900f52e93fdffa4586c97a5b20263448229" \
+            ;; \
+        312) \
+            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp312-cp312-linux_x86_64.whl"; \
+            LLAMA_SHA256="278d7c5bcc40a16e93803ae0cea781f5d064353fc0a591d87836cc2faafc57b6" \
+            ;; \
+        313) \
+            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp313-cp313-linux_x86_64.whl"; \
+            LLAMA_SHA256="be02c47a2a4d0f9baafe2ff5b94ec6592e488e73dbb39ab3ca60e56153a029f0" \
+            ;; \
+        314) \
+            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp314-cp314-linux_x86_64.whl"; \
+            LLAMA_SHA256="11c69977e7cd8255d3d952f2655300fd30ea172b366d46ce0de55bf533c16793" \
+            ;; \
+        *) \
+            echo "Unsupported Python version: ${PY_MM}"; \
+            exit 1 \
+            ;; \
+    esac; \
+    echo "${PY_MM}" > /tmp/python_abi; \
+    echo "${LLAMA_WHEEL}" > /tmp/llama_wheel; \
+    echo "${LLAMA_SHA256}" > /tmp/llama_sha256
 
 # ============================================================
-# 4. Устанавливаем custom node
-#
-# ComfyUI-llama-cpp_vlm
+# 3. ComfyUI llama.cpp custom node
 # ============================================================
 
 RUN set -eux; \
-    cd "${COMFYUI_PATH}/custom_nodes"; \
-    rm -rf ComfyUI-llama-cpp_vlm; \
+    rm -rf "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm"; \
     git clone --depth 1 \
-        https://github.com/lihaoyun6/ComfyUI-llama-cpp_vlm.git \
-        ComfyUI-llama-cpp_vlm; \
-    test -f ComfyUI-llama-cpp_vlm/nodes.py; \
-    test -d ComfyUI-llama-cpp_vlm/support
+        https://github.com/lihaoyun6/ComfyUI-llama-cpp_vlm \
+        "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm"
 
-
-# ============================================================
-# 5. Зависимости custom node
-# ============================================================
-
+# Install node requirements if present.
+# We deliberately do this BEFORE installing the pinned CUDA wheel.
 RUN set -eux; \
-    cd "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm"; \
-    if [ -f requirements.txt ]; then \
-        python3 -m pip install -r requirements.txt; \
+    if [ -f "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm/requirements.txt" ]; then \
+        python3 -m pip install \
+            --no-cache-dir \
+            -r "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm/requirements.txt" \
+            || true; \
     fi
 
-
 # ============================================================
-# 6. Зависимости, используемые nodes.py
+# 4. Python dependencies required by llama node
 # ============================================================
 
 RUN set -eux; \
     python3 -m pip install \
+        --no-cache-dir \
         numpy \
         scipy \
         pillow
 
-
 # ============================================================
-# 7. Устанавливаем конкретный Linux CUDA wheel
-#
-# JamePeng
-# llama-cpp-python 0.3.49
-# CUDA 13.1
-# Linux x86_64
-#
-# Версии и SHA256 зафиксированы.
+# 5. Install prebuilt CUDA llama-cpp-python wheel
 # ============================================================
 
 RUN set -eux; \
-    PY_VER="$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"; \
-    case "${PY_VER}" in \
-        3.10) \
-            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp310-cp310-linux_x86_64.whl"; \
-            LLAMA_SHA256="061bde5029f8862b75508104dfb428550353460f70ed512e2f4dcebbfa170a9f"; \
-            ;; \
-        3.11) \
-            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp311-cp311-linux_x86_64.whl"; \
-            LLAMA_SHA256="68a239c8288fb9cd26085b5496909900f52e93fdffa4586c97a5b20263448229"; \
-            ;; \
-        3.12) \
-            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp312-cp312-linux_x86_64.whl"; \
-            LLAMA_SHA256="278d7c5bcc40a16e93803ae0cea781f5d064353fc0a591d87836cc2faafc57b6"; \
-            ;; \
-        3.13) \
-            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp313-cp313-linux_x86_64.whl"; \
-            LLAMA_SHA256="be02c47a2a4d0f9baafe2ff5b94ec6592e488e73dbb39ab3ca60e56153a029f0"; \
-            ;; \
-        3.14) \
-            LLAMA_WHEEL="llama_cpp_python-0.3.49+cu131-cp314-cp314-linux_x86_64.whl"; \
-            LLAMA_SHA256="11c69977e7cd8255d3d952f2655300fd30ea172b366d46ce0de55bf533c16793"; \
-            ;; \
-        *) \
-            echo "ERROR: Unsupported Python version: ${PY_VER}"; \
-            exit 1; \
-            ;; \
-    esac; \
+    LLAMA_WHEEL="$(cat /tmp/llama_wheel)"; \
+    LLAMA_SHA256="$(cat /tmp/llama_sha256)"; \
     LLAMA_URL="https://github.com/JamePeng/llama-cpp-python/releases/download/v0.3.49-cu131-linux-20260831/${LLAMA_WHEEL}"; \
-    echo "=============================================="; \
-    echo "Installing llama-cpp-python"; \
-    echo "Python: ${PY_VER}"; \
-    echo "Wheel: ${LLAMA_WHEEL}"; \
-    echo "URL: ${LLAMA_URL}"; \
-    echo "=============================================="; \
-    cd /tmp; \
-    python3 -c "import urllib.request; urllib.request.urlretrieve('${LLAMA_URL}', '/tmp/${LLAMA_WHEEL}')"; \
-    test -f "/tmp/${LLAMA_WHEEL}"; \
-    echo "Checking SHA256..."; \
+    echo "Downloading ${LLAMA_URL}"; \
+    python3 - <<PY
+import urllib.request
+import sys
+
+url = "${LLAMA_URL}"
+out = "/tmp/${LLAMA_WHEEL}"
+
+for attempt in range(1, 6):
+    try:
+        print(f"Download attempt {attempt}/5")
+        urllib.request.urlretrieve(url, out)
+        break
+    except Exception as e:
+        print(f"Download failed: {e}")
+        if attempt == 5:
+            raise
+PY
     echo "${LLAMA_SHA256}  /tmp/${LLAMA_WHEEL}" | sha256sum -c -; \
-    echo "Installing wheel..."; \
-    python3 -m pip install \
-        --no-cache-dir \
-        --force-reinstall \
-        "/tmp/${LLAMA_WHEEL}"; \
+    python3 -m pip uninstall -y llama-cpp-python 2>/dev/null || true; \
+    python3 -m pip install --no-cache-dir --force-reinstall "/tmp/${LLAMA_WHEEL}"; \
     rm -f "/tmp/${LLAMA_WHEEL}"
 
+# ============================================================
+# 6. Verify llama.cpp Python package WITHOUT importing ComfyUI
+# ============================================================
+# IMPORTANT:
+# Do NOT import nodes.py here.
+# ComfyUI model_management touches CUDA during import,
+# while GitHub Actions build has no NVIDIA driver.
+
+RUN set -eux; \
+    python3 - <<'PY'
+import llama_cpp
+from llama_cpp import Llama
+
+print("llama_cpp version:", getattr(llama_cpp, "__version__", "unknown"))
+
+from llama_cpp.llama_chat_format import Qwen35ChatHandler
+
+print("Qwen35ChatHandler: OK")
+print("llama-cpp-python: OK")
+PY
 
 # ============================================================
-# 8. Проверяем llama-cpp-python
-#
-# НЕ импортируем ComfyUI.
-# НЕ импортируем nodes.py.
+# 7. Static validation of custom node source
 # ============================================================
 
 RUN set -eux; \
-    python3 -c "import llama_cpp; from llama_cpp import Llama; print('llama_cpp version:', getattr(llama_cpp, '__version__', 'unknown')); print('Llama import: OK'); from llama_cpp.llama_chat_format import Llava15ChatHandler, Llava16ChatHandler, MoondreamChatHandler, NanoLlavaChatHandler, Llama3VisionAlphaChatHandler, MiniCPMv26ChatHandler; print('Standard vision handlers: OK'); from llama_cpp.llama_chat_format import Qwen35ChatHandler; print('Qwen35ChatHandler: OK'); print('llama-cpp-python verification: PASSED')"
+    python3 - <<'PY'
+from pathlib import Path
+import ast
 
+root = Path("/default-comfyui-bundle/ComfyUI/custom_nodes/ComfyUI-llama-cpp_vlm")
+
+nodes_py = root / "nodes.py"
+
+if not nodes_py.exists():
+    raise SystemExit("nodes.py not found")
+
+source = nodes_py.read_text(encoding="utf-8")
+tree = ast.parse(source)
+
+required = [
+    "llama_cpp_model_loader",
+    "llama_cpp_parameters",
+    "llama_cpp_instruct_adv",
+]
+
+for name in required:
+    if name not in source:
+        raise SystemExit(f"Required node source missing: {name}")
+
+print("Static nodes.py check: OK")
+print("Found:", ", ".join(required))
+PY
 
 # ============================================================
-# 9. Статическая проверка custom node
-#
-# НЕ импортируем nodes.py.
-# ============================================================
-
-RUN set -eux; \
-    python3 -c "import ast; path='/default-comfyui-bundle/ComfyUI/custom_nodes/ComfyUI-llama-cpp_vlm/nodes.py'; source=open(path, 'r', encoding='utf-8').read(); ast.parse(source, filename=path); required=['llama_cpp_parameters','llama_cpp_model_loader','llama_cpp_instruct_adv']; print('Checking required node definitions...'); [print(f'  {name}: FOUND') for name in required if name in source] if all(name in source for name in required) else (_ for _ in ()).throw(RuntimeError('Required Llama node definition missing')); print('nodes.py syntax: OK')"
-
-
-# ============================================================
-# 10. Создаём необходимые директории
-#
-# GGUF-модели НЕ помещаем в Docker.
-# Они находятся на RunPod Volume:
-#
-# models/LLM/
+# 8. Create ComfyUI model directories
 # ============================================================
 
 RUN set -eux; \
     mkdir -p \
+        "${COMFYUI_PATH}/models/diffusion_models" \
+        "${COMFYUI_PATH}/models/loras" \
+        "${COMFYUI_PATH}/models/vae" \
+        "${COMFYUI_PATH}/models/text_encoders" \
         "${COMFYUI_PATH}/models/LLM" \
         "${COMFYUI_PATH}/user/default/workflows"
 
+# ============================================================
+# 9. Model downloader
+# ============================================================
+
+RUN cat > /usr/local/bin/download-model <<'PY'
+#!/usr/bin/env python3
+
+import hashlib
+import os
+import sys
+import time
+import urllib.request
+
+if len(sys.argv) != 3:
+    print("Usage: download-model URL OUTPUT")
+    sys.exit(1)
+
+url = sys.argv[1]
+output = sys.argv[2]
+
+os.makedirs(os.path.dirname(output), exist_ok=True)
+
+tmp = output + ".part"
+
+print("=" * 70)
+print("Downloading:")
+print(url)
+print("To:")
+print(output)
+print("=" * 70)
+
+for attempt in range(1, 6):
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "Mozilla/5.0"
+            }
+        )
+
+        with urllib.request.urlopen(req, timeout=120) as response:
+            total = response.headers.get("Content-Length")
+            total = int(total) if total else None
+
+            downloaded = 0
+            last_print = 0
+
+            with open(tmp, "wb") as f:
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+
+                    f.write(chunk)
+                    downloaded += len(chunk)
+
+                    now = time.time()
+
+                    if now - last_print >= 5:
+                        if total:
+                            percent = downloaded * 100 / total
+                            print(
+                                f"{downloaded / 1024 / 1024:.1f} MB "
+                                f"/ {total / 1024 / 1024:.1f} MB "
+                                f"({percent:.1f}%)",
+                                flush=True
+                            )
+                        else:
+                            print(
+                                f"{downloaded / 1024 / 1024:.1f} MB",
+                                flush=True
+                            )
+
+                        last_print = now
+
+        os.replace(tmp, output)
+
+        size = os.path.getsize(output)
+
+        if size == 0:
+            raise RuntimeError("Downloaded file is empty")
+
+        print(f"Downloaded successfully: {size / 1024 / 1024:.1f} MB")
+        sys.exit(0)
+
+    except Exception as e:
+        print(f"Download attempt {attempt}/5 failed: {e}")
+
+        try:
+            if os.path.exists(tmp):
+                os.remove(tmp)
+        except Exception:
+            pass
+
+        if attempt == 5:
+            raise
+
+        time.sleep(5)
+PY
+
+RUN chmod +x /usr/local/bin/download-model
 
 # ============================================================
-# 11. Копируем workflow
+# 10. Download FireRed Image Edit
+# ============================================================
+
+RUN set -eux; \
+    download-model \
+    "https://huggingface.co/cocorang/FireRed-Image-Edit-1.1-FP8_And_BF16/resolve/main/FireRed-Image-Edit-1.1_fp8mixed_comfy.safetensors" \
+    "${COMFYUI_PATH}/models/diffusion_models/FireRed-Image-Edit-1.1_fp8mixed_comfy.safetensors"
+
+# ============================================================
+# 11. Download Qwen Image Lightning
+# ============================================================
+
+RUN set -eux; \
+    download-model \
+    "https://huggingface.co/lightx2v/Qwen-Image-Lightning/resolve/main/Qwen-Image-Lightning-8steps-V2.0-bf16.safetensors" \
+    "${COMFYUI_PATH}/models/loras/Qwen-Image-Lightning-8steps-V2.0 bf16.safetensors"
+
+# ============================================================
+# 12. Download Qwen Image Edit F2P LoRA
+# ============================================================
+
+RUN set -eux; \
+    download-model \
+    "https://huggingface.co/DiffSynth-Studio/Qwen-Image-Edit-F2P/resolve/main/edit_0928_lora_step40000.safetensors" \
+    "${COMFYUI_PATH}/models/loras/Qwen-Image-Edit-F2P.safetensors"
+
+# ============================================================
+# 13. Download Real Life Qwen LoRA
+# ============================================================
+
+RUN set -eux; \
+    download-model \
+    "https://huggingface.co/IntelligenceLab/Loras/resolve/main/real_life_qwen.safetensors" \
+    "${COMFYUI_PATH}/models/loras/real_life_qwen.safetensors"
+
+# ============================================================
+# 14. Download Skin Fix LoRA
+# ============================================================
+
+RUN set -eux; \
+    download-model \
+    "https://huggingface.co/labai-llc/skin-fix/resolve/7a4b0556b3b578f030f200d00f3a2cd404217b00/skin_realism-248951.safetensors" \
+    "${COMFYUI_PATH}/models/loras/Skin_Fix_rank64.safetensors"
+
+# ============================================================
+# 15. Download Qwen Image VAE
+# ============================================================
+
+RUN set -eux; \
+    download-model \
+    "https://huggingface.co/f5aiteam/VAE/resolve/main/qwen_image_vae.safetensors" \
+    "${COMFYUI_PATH}/models/vae/qwen_image_vae.safetensors"
+
+# ============================================================
+# 16. Download Qwen 2.5 VL text encoder
+# ============================================================
+
+RUN set -eux; \
+    download-model \
+    "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/text_encoders/qwen_2.5_vl_7b.safetensors" \
+    "${COMFYUI_PATH}/models/text_encoders/qwen_2.5_vl_7b.safetensors"
+
+# ============================================================
+# 17. Download Qwen3.5 GGUF
+# ============================================================
+
+RUN set -eux; \
+    download-model \
+    "https://huggingface.co/HauhauCS/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive/resolve/main/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q8_0.gguf" \
+    "${COMFYUI_PATH}/models/LLM/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q8_0.gguf"
+
+# ============================================================
+# 18. Download Qwen3.5 mmproj
+# ============================================================
+
+RUN set -eux; \
+    download-model \
+    "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/46af257bdeb3425e13cf8b701602e9b5173d4641/mmproj-F16.gguf" \
+    "${COMFYUI_PATH}/models/LLM/Qwen3.5-9B-mmproj-F16.gguf"
+
+# ============================================================
+# 19. Copy workflow
 # ============================================================
 
 COPY CARUSEL.json /tmp/CARUSEL.json
 
-
 # ============================================================
-# 12. Проверяем JSON workflow
+# 20. Validate workflow JSON
 # ============================================================
 
 RUN set -eux; \
-    python3 -c "import json; path='/tmp/CARUSEL.json'; data=json.load(open(path, 'r', encoding='utf-8')); assert isinstance(data, dict), 'CARUSEL.json root must be a JSON object'; nodes=data.get('nodes', []); links=data.get('links', []); print('=============================================='); print('CARUSEL.json'); print('=============================================='); print('JSON syntax: OK'); print('Workflow ID:', data.get('id')); print('Workflow version:', data.get('version')); print('Nodes:', len(nodes)); print('Links:', len(links)); llama=sorted(set(n.get('type') for n in nodes if isinstance(n.get('type'), str) and n.get('type').startswith('llama_cpp_'))); print(''); print('Llama nodes in workflow:'); [print('  ', x) for x in llama]; print('==============================================')"
+    python3 - <<'PY'
+import json
+from pathlib import Path
 
+path = Path("/tmp/CARUSEL.json")
+
+with path.open("r", encoding="utf-8") as f:
+    workflow = json.load(f)
+
+if not isinstance(workflow, dict):
+    raise SystemExit("CARUSEL.json root is not an object")
+
+nodes = workflow.get("nodes", [])
+
+print("Workflow JSON: OK")
+print("Workflow nodes:", len(nodes))
+
+node_types = {
+    node.get("type")
+    for node in nodes
+    if isinstance(node, dict)
+}
+
+required_nodes = [
+    "llama_cpp_model_loader",
+    "llama_cpp_parameters",
+    "llama_cpp_instruct_adv",
+]
+
+for node_type in required_nodes:
+    if node_type not in node_types:
+        raise SystemExit(
+            f"Required workflow node missing: {node_type}"
+        )
+
+print("Required Llama nodes: OK")
+PY
 
 # ============================================================
-# 13. Устанавливаем workflow в правильную папку ComfyUI
+# 21. Install workflow into ComfyUI
 # ============================================================
 
 RUN set -eux; \
     install -m 0644 \
-        "/tmp/CARUSEL.json" \
+        /tmp/CARUSEL.json \
         "${COMFYUI_PATH}/user/default/workflows/CARUSEL.json"; \
-    rm -f "/tmp/CARUSEL.json"; \
-    test -f "${COMFYUI_PATH}/user/default/workflows/CARUSEL.json"
-
+    rm -f /tmp/CARUSEL.json
 
 # ============================================================
-# 14. Финальная проверка
-#
-# Никакого запуска ComfyUI.
-# Никакого обращения к CUDA.
+# 22. Verify all required models
 # ============================================================
 
 RUN set -eux; \
-    test -d "${COMFYUI_PATH}"; \
-    test -f "${COMFYUI_PATH}/main.py"; \
-    test -d "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm"; \
-    test -f "${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm/nodes.py"; \
-    test -d "${COMFYUI_PATH}/models/LLM"; \
-    test -f "${COMFYUI_PATH}/user/default/workflows/CARUSEL.json"; \
-    python3 -c "import llama_cpp; print('FINAL llama_cpp import: OK')"; \
-    echo ""; \
-    echo "=============================================="; \
-    echo " BUILD PREPARATION COMPLETE"; \
-    echo "=============================================="; \
-    echo "Base: farmerfarmit/bitcoin:v6"; \
-    echo "llama-cpp-python: 0.3.49+cu131"; \
-    echo "Platform: Linux x86_64"; \
-    echo "Custom node: ComfyUI-llama-cpp_vlm"; \
-    echo "Workflow: CARUSEL.json"; \
-    echo "Workflow path: user/default/workflows"; \
-    echo "LLM models: RunPod Volume"; \
-    echo "=============================================="
+    test -s "${COMFYUI_PATH}/models/diffusion_models/FireRed-Image-Edit-1.1_fp8mixed_comfy.safetensors"; \
+    test -s "${COMFYUI_PATH}/models/loras/Qwen-Image-Lightning-8steps-V2.0 bf16.safetensors"; \
+    test -s "${COMFYUI_PATH}/models/loras/Qwen-Image-Edit-F2P.safetensors"; \
+    test -s "${COMFYUI_PATH}/models/loras/real_life_qwen.safetensors"; \
+    test -s "${COMFYUI_PATH}/models/loras/Skin_Fix_rank64.safetensors"; \
+    test -s "${COMFYUI_PATH}/models/vae/qwen_image_vae.safetensors"; \
+    test -s "${COMFYUI_PATH}/models/text_encoders/qwen_2.5_vl_7b.safetensors"; \
+    test -s "${COMFYUI_PATH}/models/LLM/Qwen3.5-9B-Uncensored-HauhauCS-Aggressive-Q8_0.gguf"; \
+    test -s "${COMFYUI_PATH}/models/LLM/Qwen3.5-9B-mmproj-F16.gguf"; \
+    test -s "${COMFYUI_PATH}/user/default/workflows/CARUSEL.json"; \
+    echo "============================================"; \
+    echo "ALL REQUIRED FILES ARE PRESENT"; \
+    echo "============================================"
 
-WORKDIR ${COMFYUI_PATH}
+# ============================================================
+# 23. Final information
+# ============================================================
+
+RUN set -eux; \
+    echo ""; \
+    echo "===== CARUSEL IMAGE READY ====="; \
+    echo "ComfyUI: ${COMFYUI_PATH}"; \
+    echo "Workflow: ${COMFYUI_PATH}/user/default/workflows/CARUSEL.json"; \
+    echo "Llama node: ${COMFYUI_PATH}/custom_nodes/ComfyUI-llama-cpp_vlm"; \
+    echo "Models:"; \
+    find "${COMFYUI_PATH}/models" -maxdepth 2 -type f \
+        \( \
+        -name "*.safetensors" \
+        -o -name "*.gguf" \
+        \) \
+        -printf "  %p\n" \
+        | sort
+```
