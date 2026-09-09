@@ -57,53 +57,14 @@ RUN mkdir -p \
     ${COMFYUI_PATH}/output
 
 # ============================================================
-# Скачиваем только относительно лёгкие модели (во время билда)
-# ============================================================
-
-# FireRed (~10-12GB, но оставляем)
-RUN wget -q --show-progress --tries=5 \
-    -O ${COMFYUI_PATH}/models/diffusion_models/FireRed-Image-Edit-1.1_fp8mixed_comfy.safetensors \
-    "https://huggingface.co/cocorang/FireRed-Image-Edit-1.1-FP8_And_BF16/resolve/main/FireRed-Image-Edit-1.1_fp8mixed_comfy.safetensors"
-
-# Lightning
-RUN wget -q --show-progress --tries=5 \
-    -O ${COMFYUI_PATH}/models/loras/Qwen-Image-Lightning-8steps-V2.0-bf16.safetensors \
-    "https://huggingface.co/lightx2v/Qwen-Image-Lightning/resolve/main/Qwen-Image-Lightning-8steps-V2.0-bf16.safetensors"
-
-# F2P
-RUN wget -q --show-progress --tries=5 \
-    -O ${COMFYUI_PATH}/models/loras/Qwen-Image-Edit-F2P.safetensors \
-    "https://huggingface.co/DiffSynth-Studio/Qwen-Image-Edit-F2P/resolve/main/edit_0928_lora_step40000.safetensors"
-
-# Real Life
-RUN wget -q --show-progress --tries=5 \
-    -O ${COMFYUI_PATH}/models/loras/real_life_qwen.safetensors \
-    "https://huggingface.co/IntelligenceLab/Loras/resolve/main/real_life_qwen.safetensors"
-
-# Skin Fix
-RUN wget -q --show-progress --tries=5 \
-    -O ${COMFYUI_PATH}/models/loras/Skin_Fix_rank64.safetensors \
-    "https://huggingface.co/labai-llc/skin-fix/resolve/7a4b0556b3b578f030f200d00f3a2cd404217b00/skin_realism-248951.safetensors"
-
-# VAE
-RUN wget -q --show-progress --tries=5 \
-    -O ${COMFYUI_PATH}/models/vae/qwen_image_vae.safetensors \
-    "https://huggingface.co/f5aiteam/VAE/resolve/main/qwen_image_vae.safetensors"
-
-# Text Encoder
-RUN wget -q --show-progress --tries=5 \
-    -O ${COMFYUI_PATH}/models/text_encoders/qwen_2.5_vl_7b.safetensors \
-    "https://huggingface.co/Comfy-Org/Qwen-Image_ComfyUI/resolve/main/split_files/text_encoders/qwen_2.5_vl_7b.safetensors"
-
-# ============================================================
-# Тяжёлые модели (GGUF) скачиваем при старте контейнера
-# ============================================================
-
 # Workflow
+# ============================================================
 RUN rm -rf ${COMFYUI_PATH}/user/default/workflows/*
 COPY CARUSEL.json ${COMFYUI_PATH}/user/default/workflows/CARUSEL.json
 
+# ============================================================
 # Entrypoint
+# ============================================================
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
